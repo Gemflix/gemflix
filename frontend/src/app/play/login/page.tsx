@@ -1,54 +1,25 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { Mail, Lock, Loader2, Eye, EyeOff } from "lucide-react";
 import { useTheme } from "../ThemeProvider";
+import { loginAction } from "@/app/actions/auth";
 
 export default function PlayLoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const { theme } = useTheme();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleAction = async (formData: FormData) => {
     setError("");
-
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password, platform: "web" }),
-        credentials: "include", // Importante para recibir cookies cross-domain
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        console.log("LOGIN DATA:", data);
-        if (data.user?.roles?.length > 0 || data.user?.id === 1) {
-          document.cookie = `gemflix_staff_role=admin; path=/; max-age=86400; samesite=lax`;
-          window.location.href = "http://admin.localhost:3000/";
-        } else {
-          document.cookie = `gemflix_staff_role=user; path=/; max-age=86400; samesite=lax`;
-          // Redirigir usando force refresh para que middleware capture la nueva cookie
-          window.location.href = "/";
-        }
-      } else {
-        const data = await res.json();
-        setError(data.error || "Credenciales inválidas");
+    startTransition(async () => {
+      try {
+        await loginAction(formData);
+      } catch (err: any) {
+        setError(err.message || "Credenciales inválidas");
       }
-    } catch (err) {
-      setError("Error de red. Intenta nuevamente.");
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   return (
@@ -80,7 +51,7 @@ export default function PlayLoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-6">
+        <form action={handleAction} className="space-y-6">
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-300 ml-1">Correo Electrónico</label>
             <div className="relative">
@@ -89,9 +60,8 @@ export default function PlayLoginPage() {
               </div>
               <input
                 type="email"
+                name="email"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 bg-black/40 border border-white/10 rounded-xl focus:outline-none focus:border-accent text-white transition-colors placeholder:text-gray-600"
                 placeholder="tu@email.com"
               />
@@ -109,9 +79,8 @@ export default function PlayLoginPage() {
               </div>
               <input
                 type={showPassword ? "text" : "password"}
+                name="password"
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 className="w-full pl-12 pr-12 py-3 bg-black/40 border border-white/10 rounded-xl focus:outline-none focus:border-accent text-white transition-colors placeholder:text-gray-600"
                 placeholder="••••••••"
               />
@@ -127,11 +96,11 @@ export default function PlayLoginPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={isPending}
             className="w-full py-3 px-4 font-bold text-white rounded-xl transition-all flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50"
             style={{ backgroundColor: "var(--accent)" }}
           >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Iniciar Sesión"}
+            {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Iniciar Sesión"}
           </button>
         </form>
 

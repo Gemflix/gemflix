@@ -13,6 +13,7 @@ import (
 	
 	"proyecto-go/api"
 	"proyecto-go/db/sqlc"
+	"proyecto-go/utils"
 )
 
 func main() {
@@ -43,8 +44,16 @@ func main() {
 	// Inicializar los queries de sqlc
 	queries := db.New(dbPool)
 
+	// Inicializar Redis
+	fmt.Println("Conectando a Redis...")
+	redisClient := utils.NewRedisClient()
+	if err := redisClient.Ping(ctx).Err(); err != nil {
+		log.Fatalf("No se pudo conectar a Redis: %v", err)
+	}
+	fmt.Println("✅ ¡Conectado exitosamente a Redis!")
+
 	// Inicializar nuestro Servidor API con sus rutas
-	server := api.NewServer(queries)
+	server := api.NewServer(queries, redisClient)
 
 	if err := server.SyncPermissions(context.Background()); err != nil {
 		log.Printf("Advertencia: No se pudieron sincronizar los permisos: %v", err)

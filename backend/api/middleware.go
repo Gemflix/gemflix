@@ -7,13 +7,15 @@ import (
 	"log"
 
 	"proyecto-go/db/sqlc"
+	"proyecto-go/utils"
 )
 
 type contextKey string
 
 const (
-	userIDKey   contextKey = "user_id"
-	deviceIDKey contextKey = "device_id"
+	userClaimsKey contextKey = "user_claims"
+	userIDKey     contextKey = "user_id"
+	deviceIDKey   contextKey = "device_id"
 )
 
 // AuthMiddlewareChi es un middleware estándar compatible con Chi (y net/http)
@@ -22,13 +24,9 @@ func (s *Server) AuthMiddlewareChi(next http.Handler) http.Handler {
 		// 1. Obtener cabecera Authorization
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
-			cookie, err := r.Cookie("gemflix_session")
-			if err != nil {
-				w.WriteHeader(http.StatusUnauthorized)
-				w.Write([]byte(`{"error": "No token provided"}`))
-				return
-			}
-			authHeader = "Bearer " + cookie.Value
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"error": "No token provided"}`))
+			return
 		}
 
 		// 2. Extraer el token
@@ -38,33 +36,24 @@ func (s *Server) AuthMiddlewareChi(next http.Handler) http.Handler {
 			w.Write([]byte(`{"error": "Invalid authorization header format"}`))
 			return
 		}
-		token := parts[1]
+		tokenString := parts[1]
 
-		// 3. Verificar en la base de datos (Token Opaco)
-		ctx := r.Context()
-		tokenData, err := s.db.CheckTokenWithDevice(ctx, token)
+		// 3. Verificar el JWT
+		claims, err := utils.ValidateAccessToken(tokenString)
 		if err != nil {
-			log.Printf("Token inválido o expirado: %v", err)
+			log.Printf("Token JWT inválido o expirado: %v", err)
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(`{"error": "Invalid or expired token"}`))
 			return
 		}
 
-		// 4. Validar baneos y estado del dispositivo
-		if tokenData.IsShadowbanned {
-			w.WriteHeader(http.StatusForbidden)
-			w.Write([]byte(`{"error": "Account is suspended"}`))
-			return
-		}
-		if !tokenData.DeviceActive {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(`{"error": "Device has been revoked"}`))
-			return
-		}
-		
-		// 6. Inyectar IDs en el contexto
-		ctx = context.WithValue(ctx, userIDKey, tokenData.UserID)
-		ctx = context.WithValue(ctx, deviceIDKey, tokenData.DeviceID)
+		// 4. Inyectar claims y userID en el contexto
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, userClaimsKey, claims)
+		ctx = context.WithValue(ctx, userIDKey, claims.UserID)
+
+		// Opcional: Podríamos seguir inyectando el DeviceID si el JWT lo incluyera, 
+		// pero en esta versión stateless usaremos los datos esenciales.
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

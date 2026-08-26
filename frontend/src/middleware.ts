@@ -31,7 +31,7 @@ export function middleware(req: NextRequest) {
   }
   
   // 2. Definimos mapeos de subdominios a rutas
-  const hasSession = req.cookies.has('gemflix_session');
+  const hasSession = req.cookies.has('access_token');
   const roleValue = req.cookies.get('gemflix_staff_role')?.value || 'user';
   
   // Consideramos staff a cualquiera con un rol que no sea 'user' vacío

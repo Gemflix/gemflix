@@ -14,6 +14,7 @@ import (
 	"github.com/mssola/user_agent"
 	"golang.org/x/crypto/bcrypt"
 	"proyecto-go/db/sqlc"
+	"proyecto-go/utils"
 )
 
 type LoginRequest struct {
@@ -102,75 +103,34 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 5. Generar Token Sanctum Style (Opaco)
-	tokenString := generateRandomToken(64)
-	expiresAt := time.Now().AddDate(1, 0, 0) // 1 año
-
-	token, err := s.db.CreatePersonalAccessToken(ctx, db.CreatePersonalAccessTokenParams{
-		TokenableType: "user",
-		TokenableID:   user.ID,
-		Name:          "login_" + req.Platform,
-		Client:        pgtype.Text{String: req.Platform, Valid: true},
-		DeviceID:      pgtype.Int8{Int64: device.ID, Valid: true},
-		Token:         tokenString,
-		ExpiresAt:     pgtype.Timestamptz{Time: expiresAt, Valid: true},
-	})
-	if err != nil {
-		http.Error(w, "Error generando token", http.StatusInternalServerError)
-		return
-	}
-
-	// Get Roles
+	// 5. Generar Tokens JWT (BFF Pattern)
 	roles, _ := s.db.GetUserRoles(ctx, user.ID)
 	roleNames := make([]string, 0)
 	for _, r := range roles {
 		roleNames = append(roleNames, r.Name)
 	}
 
-	// Omitir Domain para localhost porque Chrome/Firefox lo rechazan si es 'localhost' o '.localhost'.
-	// Para producción, esto debería ser ej. ".gemflix.com"
-	cookieDomain := "" // Dejar vacío para host-only en local
-	
-	sessionCookie := &http.Cookie{
-		Name:     "gemflix_session",
-		Value:    token.Token,
-		Expires:  expiresAt,
-		HttpOnly: true,  
-		Secure:   false, // set to true in prod with HTTPS
-		SameSite: http.SameSiteLaxMode,
-		Path:     "/",
+	accessToken, refreshToken, err := utils.GenerateTokens(user.ID, roleNames)
+	if err != nil {
+		http.Error(w, "Error generando tokens", http.StatusInternalServerError)
+		return
 	}
-	if cookieDomain != "" {
-		sessionCookie.Domain = cookieDomain
-	}
-	http.SetCookie(w, sessionCookie)
 
-	// Set gemflix_role cookie (Not HttpOnly so frontend can read it)
-	roleCookieValue := "user"
-	if len(roleNames) > 0 || user.ID == 1 {
-		roleCookieValue = "admin" // safe generic value for any staff with roles or the hardcoded superadmin
+	// 6. Guardar Refresh Token en Redis (7 días)
+	err = s.redisClient.Set(ctx, "refresh_token:"+refreshToken, user.ID, 7*24*time.Hour).Err()
+	if err != nil {
+		fmt.Printf("ERROR Guardando en Redis: %v\n", err)
+		http.Error(w, "Error de servidor (Redis)", http.StatusInternalServerError)
+		return
 	}
-	
-	fmt.Printf("Login Success: UserID=%d, Email=%s, Roles=%v, CookieAssigned=%s\n", user.ID, user.Email, roleNames, roleCookieValue)
-	
-	roleCookie := &http.Cookie{
-		Name:     "gemflix_staff_role",
-		Value:    roleCookieValue,
-		Expires:  expiresAt,
-		HttpOnly: false,  
-		Secure:   false, 
-		SameSite: http.SameSiteLaxMode,
-		Path:     "/",
-	}
-	if cookieDomain != "" {
-		roleCookie.Domain = cookieDomain
-	}
-	http.SetCookie(w, roleCookie)
 
-	// 7. Respuesta Exitosa JSON
+	fmt.Printf("Login Success: UserID=%d, Email=%s, Roles=%v\n", user.ID, user.Email, roleNames)
+	
+	// 7. Respuesta Exitosa JSON (Sin setear cookies, el BFF lo hará)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"token": token.Token,
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
 		"user": map[string]interface{}{
 			"id":    user.ID,
 			"name":  user.Name,
@@ -182,48 +142,20 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
-	// Intentar obtener el token de Authorization Header o Cookie
-	var token string
-	authHeader := r.Header.Get("Authorization")
-	if authHeader != "" {
-		parts := strings.Split(authHeader, " ")
-		if len(parts) == 2 {
-			token = parts[1]
-		}
-	} else {
-		cookie, err := r.Cookie("gemflix_session")
-		if err == nil {
-			token = cookie.Value
-		}
+	// Intentar obtener el token de Authorization Header o el body
+	var refreshToken string
+	var req struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+	
+	if err := json.NewDecoder(r.Body).Decode(&req); err == nil {
+		refreshToken = req.RefreshToken
 	}
 
-	if token != "" {
-		s.db.RevokeToken(r.Context(), token)
+	if refreshToken != "" {
+		// Revocar el token en Redis
+		s.redisClient.Del(r.Context(), "refresh_token:"+refreshToken)
 	}
-
-	// Limpiar la cookie HttpOnly en el navegador del cliente
-	sessionClearCookie := &http.Cookie{
-		Name:     "gemflix_session",
-		Value:    "",
-		Expires:  time.Unix(0, 0),
-		MaxAge:   -1,
-		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
-		Path:     "/",
-	}
-	roleClearCookie := &http.Cookie{
-		Name:     "gemflix_staff_role",
-		Value:    "",
-		Expires:  time.Unix(0, 0),
-		MaxAge:   -1,
-		HttpOnly: false,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
-		Path:     "/",
-	}
-	http.SetCookie(w, sessionClearCookie)
-	http.SetCookie(w, roleClearCookie)
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"message": "Logged out successfully"}`))
@@ -231,19 +163,15 @@ func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleAuthMe(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	cookie, err := r.Cookie("gemflix_session")
-	if err != nil {
-		http.Error(w, "No session", http.StatusUnauthorized)
+	
+	// El token debe venir validado por el middleware y los claims inyectados en el contexto
+	claims, ok := ctx.Value(userClaimsKey).(*utils.CustomClaims)
+	if !ok {
+		http.Error(w, "No autorizado", http.StatusUnauthorized)
 		return
 	}
 
-	tokenData, err := s.db.CheckTokenWithDevice(ctx, cookie.Value)
-	if err != nil {
-		http.Error(w, "Invalid session", http.StatusUnauthorized)
-		return
-	}
-
-	user, err := s.db.GetUser(ctx, tokenData.TokenableID)
+	user, err := s.db.GetUser(ctx, claims.UserID)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusUnauthorized)
 		return

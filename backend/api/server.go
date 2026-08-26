@@ -8,19 +8,22 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/redis/go-redis/v9"
 )
 
 // Server maneja las rutas de la API
 type Server struct {
-	db     *db.Queries
-	router chi.Router
+	db          *db.Queries
+	redisClient *redis.Client
+	router      chi.Router
 }
 
 // NewServer inicializa el servidor y el enrutador con Chi
-func NewServer(db *db.Queries) *Server {
+func NewServer(db *db.Queries, redisClient *redis.Client) *Server {
 	s := &Server{
-		db:     db,
-		router: chi.NewRouter(),
+		db:          db,
+		redisClient: redisClient,
+		router:      chi.NewRouter(),
 	}
 	s.setupMiddlewares()
 	s.routes()
