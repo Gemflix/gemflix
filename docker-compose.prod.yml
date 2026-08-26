@@ -53,7 +53,7 @@ services:
     labels:
       - "traefik.enable=true"
       # Rutas para el backend (API)
-      - "traefik.http.routers.gemflix-api.rule=Host(`api.tudominio.com`)"
+      - "traefik.http.routers.gemflix-api.rule=Host(`api.gemflix.com`, `api.gemflix.org`)"
       - "traefik.http.routers.gemflix-api.entrypoints=websecure"
       - "traefik.http.routers.gemflix-api.tls.certresolver=letsencrypt"
       - "traefik.http.services.gemflix-api.loadbalancer.server.port=8080"
@@ -64,7 +64,7 @@ services:
     container_name: gemflix-frontend
     restart: always
     environment:
-      - NEXT_PUBLIC_API_URL=https://api.tudominio.com
+      - NEXT_PUBLIC_API_URL=https://api.gemflix.com
     networks:
       - traefik_web_network
     depends_on:
@@ -76,16 +76,11 @@ services:
           memory: 512M
     labels:
       - "traefik.enable=true"
-      # Rutas para el frontend (Web principal)
-      - "traefik.http.routers.gemflix-web.rule=Host(`tudominio.com`, `www.tudominio.com`)"
+      # Rutas para el frontend (Web principal y subdominios)
+      - "traefik.http.routers.gemflix-web.rule=Host(`gemflix.com`, `www.gemflix.com`, `gemflix.org`, `www.gemflix.org`, `play.gemflix.org`, `play.gemflix.com`, `ver.gemflix.org`, `admin.gemflix.org`, `admin.gemflix.com`, `dashboard.gemflix.org`, `panel.gemflix.org`, `drive.gemflix.org`, `jellyfin.gemflix.org`)"
       - "traefik.http.routers.gemflix-web.entrypoints=websecure"
       - "traefik.http.routers.gemflix-web.tls.certresolver=letsencrypt"
       - "traefik.http.services.gemflix-web.loadbalancer.server.port=3000"
-      
-      # Si tienes un subdominio para admin
-      - "traefik.http.routers.gemflix-admin.rule=Host(`admin.tudominio.com`)"
-      - "traefik.http.routers.gemflix-admin.entrypoints=websecure"
-      - "traefik.http.routers.gemflix-admin.tls.certresolver=letsencrypt"
 
 volumes:
   gemflix_pgdata:
