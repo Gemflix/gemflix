@@ -6,9 +6,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  # Repositorio en GitHub Container Registry
-  BACKEND_IMAGE_NAME: ${{ github.repository }}-backend
-  FRONTEND_IMAGE_NAME: ${{ github.repository }}-frontend
 
 jobs:
   build-and-push:
@@ -20,6 +17,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Set lower case repository name
+        run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
 
       - name: Log in to the Container registry
         uses: docker/login-action@v2
@@ -34,7 +34,7 @@ jobs:
         with:
           context: ./backend
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}:latest
+          tags: ${{ env.REGISTRY }}/${{ env.REPO_LC }}-backend:latest
 
       # Construir y Push Frontend
       - name: Build and push Frontend image
@@ -42,7 +42,7 @@ jobs:
         with:
           context: ./frontend
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}:latest
+          tags: ${{ env.REGISTRY }}/${{ env.REPO_LC }}-frontend:latest
 
   deploy:
     needs: build-and-push

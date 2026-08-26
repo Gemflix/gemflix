@@ -31,9 +31,7 @@ services:
 
   # Backend Go
   backend:
-    build: 
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/gemflix/gemflix-backend:latest
     container_name: gemflix-backend
     restart: always
     environment:
@@ -62,9 +60,7 @@ services:
 
   # Frontend Next.js
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: ghcr.io/gemflix/gemflix-frontend:latest
     container_name: gemflix-frontend
     restart: always
     environment:
