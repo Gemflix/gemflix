@@ -39,7 +39,7 @@ services:
       - PORT=8080
       # Añadir variables de entorno secretas desde un archivo .env
     env_file:
-      - ./backend/.env
+      - .env
     networks:
       - gemflix_internal
       - traefik_web_network
