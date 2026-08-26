@@ -66,11 +66,16 @@ services:
           memory: 256M
     labels:
       - "traefik.enable=true"
-      # Rutas para el backend (API)
+      # Rutas HTTPS para el backend (API)
       - "traefik.http.routers.gemflix-api.rule=Host(`api.gemflix.org`)"
       - "traefik.http.routers.gemflix-api.entrypoints=websecure"
       - "traefik.http.routers.gemflix-api.tls.certresolver=letsencrypt"
       - "traefik.http.services.gemflix-api.loadbalancer.server.port=8080"
+      
+      # Redirección de HTTP a HTTPS para el backend
+      - "traefik.http.routers.gemflix-api-http.rule=Host(`api.gemflix.org`)"
+      - "traefik.http.routers.gemflix-api-http.entrypoints=web"
+      - "traefik.http.routers.gemflix-api-http.middlewares=redirect-to-https"
 
   # Frontend Next.js
   frontend:
@@ -90,11 +95,19 @@ services:
           memory: 512M
     labels:
       - "traefik.enable=true"
-      # Rutas para el frontend (Web principal, Play y Admin)
+      # Middleware global de redirección HTTPS (se define una vez y se usa en ambos)
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      
+      # Rutas HTTPS para el frontend
       - "traefik.http.routers.gemflix-web.rule=Host(`gemflix.org`, `www.gemflix.org`, `play.gemflix.org`, `admin.gemflix.org`)"
       - "traefik.http.routers.gemflix-web.entrypoints=websecure"
       - "traefik.http.routers.gemflix-web.tls.certresolver=letsencrypt"
       - "traefik.http.services.gemflix-web.loadbalancer.server.port=3000"
+      
+      # Redirección de HTTP a HTTPS para el frontend
+      - "traefik.http.routers.gemflix-web-http.rule=Host(`gemflix.org`, `www.gemflix.org`, `play.gemflix.org`, `admin.gemflix.org`)"
+      - "traefik.http.routers.gemflix-web-http.entrypoints=web"
+      - "traefik.http.routers.gemflix-web-http.middlewares=redirect-to-https"
 
 volumes:
   gemflix_pgdata:
