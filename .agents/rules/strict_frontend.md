@@ -33,5 +33,15 @@ El usuario exige un código extremadamente limpio y libre de advertencias de lin
    - Elimina todas las importaciones y variables declaradas que no se estén utilizando (ej. `motion` importado pero no usado).
    - No dejes código comentado ni dependencias muertas.
 
+6. **Sintaxis Moderna de Tailwind CSS (v4+):**
+   - El linter (o IDE) genera advertencias para la sintaxis antigua. NUNCA escribas clases con formato antiguo.
+   - REGLAS DE REEMPLAZO OBLIGATORIAS:
+     - En lugar de valores arbitrarios como `z-[100]`, `z-[110]`, usa clases nativas: `z-100`, `z-110`.
+     - En lugar de `max-w-[200px]`, `w-[600px]`, usa el sistema espaciador moderno (ej. `max-w-50`, `w-150`).
+     - En lugar de `bg-gradient-to-r`, usa SIEMPRE la nueva sintaxis `bg-linear-to-r`, `bg-linear-to-t`, etc.
+     - En lugar de usar variables con corchetes repetitivos como `from-[var(--accent)]`, usa directamente la variable referenciada si existe en el sistema (ej. `from-accent`), o configúrala apropiadamente.
+     - En lugar de clases display redundantes (`flex` vs `block`), elimina la que aplique de manera redundante según la estructura.
+   - CUANDO ABRAS UN ARCHIVO EXISTENTE: Es tu responsabilidad escanear y actualizar instantáneamente TODA la sintaxis antigua de Tailwind a su versión moderna.
+
 ## Consecuencias
-Antes de dar una tarea de Frontend por concluida, el código debe pasar limpiamente (0 Errores, 0 Warnings) al ejecutar `npm run lint` y `npx tsc --noEmit`. Si introduces un warning, soluciónalo inmediatamente antes de hacer commit.
+Antes de dar una tarea de Frontend por concluida, el código debe pasar limpiamente (0 Errores, 0 Warnings) al ejecutar `npm run lint` y `npx tsc --noEmit`. Si introduces un warning (incluyendo warnings de Tailwind en el IDE), soluciónalo inmediatamente. No ignores advertencias estéticas.
