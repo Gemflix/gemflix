@@ -1,7 +1,7 @@
 # ----------------------------------
 # Etapa 1: Constructor (Builder)
 # ----------------------------------
-FROM golang:1.23-alpine AS builder
+FROM golang:1.26-alpine AS builder
 
 # Habilitar CGO_ENABLED=0 para asegurar que el binario sea completamente estático
 ENV CGO_ENABLED=0 \
