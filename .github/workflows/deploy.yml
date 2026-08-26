@@ -36,13 +36,14 @@ jobs:
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.REPO_LC }}-backend:latest
 
-      # Construir y Push Frontend
       - name: Build and push Frontend image
         uses: docker/build-push-action@v4
         with:
           context: ./frontend
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.REPO_LC }}-frontend:latest
+          build-args: |
+            NEXT_PUBLIC_API_URL=https://api.gemflix.org
 
   deploy:
     needs: build-and-push
