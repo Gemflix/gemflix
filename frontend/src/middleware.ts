@@ -101,6 +101,19 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(newUrl);
   }
 
+  // Si están visitando la raíz del dominio principal gemflix.org (sin subdominio)
+  if (currentHost === baseDomain) {
+    // Si tienen sesión y visitan la raíz, enviarlos al hub
+    if (hasSession && url.pathname === '/') {
+      return NextResponse.redirect(new URL('/hub', req.url));
+    }
+    
+    // Si intentan entrar a /hub sin sesión, expulsarlos al login
+    if (!hasSession && url.pathname.startsWith('/hub')) {
+      return NextResponse.redirect(new URL('/login', req.url));
+    }
+  }
+
   // Por defecto (Portal / Landing Page)
   // Reescribimos al home (o /portal si tienes una carpeta específica para el root)
   return NextResponse.next();
