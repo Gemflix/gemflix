@@ -1,0 +1,285 @@
+package api
+
+import (
+	"crypto/rand"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/netip"
+	"strings"
+	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/mssola/user_agent"
+	"golang.org/x/crypto/bcrypt"
+	"proyecto-go/db/sqlc"
+)
+
+type LoginRequest struct {
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+	Fingerprint string `json:"fingerprint"` // Provided by frontend or mobile app
+	Platform    string `json:"platform"`    // web, android_mobile, etc.
+}
+
+func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
+	var req LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	ctx := r.Context()
+	
+	// 1. Validar Usuario
+	user, err := s.db.GetUserByEmail(ctx, req.Email)
+	if err != nil {
+		fmt.Println("Login Error - GetUserByEmail failed:", err, "for email:", req.Email)
+		http.Error(w, "Credenciales inválidas", http.StatusUnauthorized)
+		return
+	}
+
+	if user.PasswordHash.String == "" {
+		http.Error(w, "Esta cuenta requiere inicio de sesión con Google/OAuth", http.StatusForbidden)
+		return
+	}
+
+	// 2. Validar Contraseña (Protección fuerza bruta básica con bcrypt)
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash.String), []byte(req.Password))
+	if err != nil {
+		fmt.Println("Login Error - Password mismatch for:", req.Email)
+		http.Error(w, "Credenciales inválidas", http.StatusUnauthorized)
+		return
+	}
+
+	// 3. Analizar el User Agent
+	ua := r.Header.Get("User-Agent")
+	parsedUA := user_agent.New(ua)
+	osName := parsedUA.OS()
+	browserName, browserVersion := parsedUA.Browser()
+	
+	clientIP := r.Header.Get("X-Forwarded-For")
+	if clientIP == "" {
+		clientIP = r.RemoteAddr
+	}
+
+	// Limpiar IP de puertos si es necesario (ej: 127.0.0.1:54321)
+	if strings.Contains(clientIP, ":") && !strings.Contains(clientIP, "[") {
+		parts := strings.Split(clientIP, ":")
+		clientIP = parts[0]
+	}
+
+	var clientIPAddr *netip.Addr
+	if parsedIP, err := netip.ParseAddr(clientIP); err == nil {
+		clientIPAddr = &parsedIP
+	}
+
+	// 4. Registrar Dispositivo
+	if req.Platform == "" {
+		req.Platform = "web"
+	}
+	if req.Fingerprint == "" {
+		// Fallback seguro: Si no envía fingerprint, generamos un hash SHA-256 del User-Agent (64 caracteres exactos)
+		// O generamos un token random corto si preferimos no trackear el UA directamente.
+		req.Fingerprint = "fallback_" + generateRandomToken(32)
+	}
+
+	device, err := s.db.RegisterDevice(ctx, db.RegisterDeviceParams{
+		UserID:         user.ID,
+		Platform:       req.Platform,
+		Fingerprint:    req.Fingerprint,
+		DeviceBrand:    pgtype.Text{String: browserName, Valid: true},
+		DeviceModel:    pgtype.Text{String: browserVersion, Valid: true},
+		OsVersion:      pgtype.Text{String: osName, Valid: true},
+		LastIp:         clientIPAddr,
+		SessionID:      pgtype.Text{String: generateRandomToken(32), Valid: true},
+		LastUserAgent:  pgtype.Text{String: ua, Valid: true},
+	})
+	if err != nil {
+		fmt.Printf("ERROR RegisterDevice: %v\n", err)
+		http.Error(w, "Error registrando dispositivo", http.StatusInternalServerError)
+		return
+	}
+
+	// 5. Generar Token Sanctum Style (Opaco)
+	tokenString := generateRandomToken(64)
+	expiresAt := time.Now().AddDate(1, 0, 0) // 1 año
+
+	token, err := s.db.CreatePersonalAccessToken(ctx, db.CreatePersonalAccessTokenParams{
+		TokenableType: "user",
+		TokenableID:   user.ID,
+		Name:          "login_" + req.Platform,
+		Client:        pgtype.Text{String: req.Platform, Valid: true},
+		DeviceID:      pgtype.Int8{Int64: device.ID, Valid: true},
+		Token:         tokenString,
+		ExpiresAt:     pgtype.Timestamptz{Time: expiresAt, Valid: true},
+	})
+	if err != nil {
+		http.Error(w, "Error generando token", http.StatusInternalServerError)
+		return
+	}
+
+	// Get Roles
+	roles, _ := s.db.GetUserRoles(ctx, user.ID)
+	roleNames := make([]string, 0)
+	for _, r := range roles {
+		roleNames = append(roleNames, r.Name)
+	}
+
+	// Omitir Domain para localhost porque Chrome/Firefox lo rechazan si es 'localhost' o '.localhost'.
+	// Para producción, esto debería ser ej. ".gemflix.com"
+	cookieDomain := "" // Dejar vacío para host-only en local
+	
+	sessionCookie := &http.Cookie{
+		Name:     "gemflix_session",
+		Value:    token.Token,
+		Expires:  expiresAt,
+		HttpOnly: true,  
+		Secure:   false, // set to true in prod with HTTPS
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+	}
+	if cookieDomain != "" {
+		sessionCookie.Domain = cookieDomain
+	}
+	http.SetCookie(w, sessionCookie)
+
+	// Set gemflix_role cookie (Not HttpOnly so frontend can read it)
+	roleCookieValue := "user"
+	if len(roleNames) > 0 || user.ID == 1 {
+		roleCookieValue = "admin" // safe generic value for any staff with roles or the hardcoded superadmin
+	}
+	
+	fmt.Printf("Login Success: UserID=%d, Email=%s, Roles=%v, CookieAssigned=%s\n", user.ID, user.Email, roleNames, roleCookieValue)
+	
+	roleCookie := &http.Cookie{
+		Name:     "gemflix_staff_role",
+		Value:    roleCookieValue,
+		Expires:  expiresAt,
+		HttpOnly: false,  
+		Secure:   false, 
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+	}
+	if cookieDomain != "" {
+		roleCookie.Domain = cookieDomain
+	}
+	http.SetCookie(w, roleCookie)
+
+	// 7. Respuesta Exitosa JSON
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"token": token.Token,
+		"user": map[string]interface{}{
+			"id":    user.ID,
+			"name":  user.Name,
+			"email": user.Email,
+			"roles": roleNames,
+		},
+		"device_id": device.ID,
+	})
+}
+
+func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
+	// Intentar obtener el token de Authorization Header o Cookie
+	var token string
+	authHeader := r.Header.Get("Authorization")
+	if authHeader != "" {
+		parts := strings.Split(authHeader, " ")
+		if len(parts) == 2 {
+			token = parts[1]
+		}
+	} else {
+		cookie, err := r.Cookie("gemflix_session")
+		if err == nil {
+			token = cookie.Value
+		}
+	}
+
+	if token != "" {
+		s.db.RevokeToken(r.Context(), token)
+	}
+
+	// Limpiar la cookie HttpOnly en el navegador del cliente
+	sessionClearCookie := &http.Cookie{
+		Name:     "gemflix_session",
+		Value:    "",
+		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+	}
+	roleClearCookie := &http.Cookie{
+		Name:     "gemflix_staff_role",
+		Value:    "",
+		Expires:  time.Unix(0, 0),
+		MaxAge:   -1,
+		HttpOnly: false,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+		Path:     "/",
+	}
+	http.SetCookie(w, sessionClearCookie)
+	http.SetCookie(w, roleClearCookie)
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"message": "Logged out successfully"}`))
+}
+
+func (s *Server) handleAuthMe(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	cookie, err := r.Cookie("gemflix_session")
+	if err != nil {
+		http.Error(w, "No session", http.StatusUnauthorized)
+		return
+	}
+
+	tokenData, err := s.db.CheckTokenWithDevice(ctx, cookie.Value)
+	if err != nil {
+		http.Error(w, "Invalid session", http.StatusUnauthorized)
+		return
+	}
+
+	user, err := s.db.GetUser(ctx, tokenData.TokenableID)
+	if err != nil {
+		http.Error(w, "User not found", http.StatusUnauthorized)
+		return
+	}
+
+	// Active profile
+	var activeProfile map[string]interface{}
+	profileData, err := s.db.GetFirstActiveProfile(ctx, user.ID)
+	if err == nil {
+		activeProfile = map[string]interface{}{
+			"id":   profileData.ID,
+			"name": profileData.Name,
+		}
+	}
+
+	roles, _ := s.db.GetUserRoles(ctx, user.ID)
+	var roleNames []string
+	for _, r := range roles {
+		roleNames = append(roleNames, r.Name)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"user": map[string]interface{}{
+			"id":    user.ID,
+			"name":  user.Name,
+			"email": user.Email,
+			"roles": roleNames,
+		},
+		"activeProfile": activeProfile,
+	})
+}
+
+// generateRandomToken crea un token criptográficamente seguro
+func generateRandomToken(length int) string {
+	b := make([]byte, length/2)
+	rand.Read(b)
+	return hex.EncodeToString(b)
+}

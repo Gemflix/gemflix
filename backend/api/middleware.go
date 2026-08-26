@@ -1,0 +1,138 @@
+package api
+
+import (
+	"context"
+	"net/http"
+	"strings"
+	"log"
+
+	"proyecto-go/db/sqlc"
+)
+
+type contextKey string
+
+const (
+	userIDKey   contextKey = "user_id"
+	deviceIDKey contextKey = "device_id"
+)
+
+// AuthMiddlewareChi es un middleware estándar compatible con Chi (y net/http)
+func (s *Server) AuthMiddlewareChi(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// 1. Obtener cabecera Authorization
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
+			cookie, err := r.Cookie("gemflix_session")
+			if err != nil {
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Write([]byte(`{"error": "No token provided"}`))
+				return
+			}
+			authHeader = "Bearer " + cookie.Value
+		}
+
+		// 2. Extraer el token
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"error": "Invalid authorization header format"}`))
+			return
+		}
+		token := parts[1]
+
+		// 3. Verificar en la base de datos (Token Opaco)
+		ctx := r.Context()
+		tokenData, err := s.db.CheckTokenWithDevice(ctx, token)
+		if err != nil {
+			log.Printf("Token inválido o expirado: %v", err)
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"error": "Invalid or expired token"}`))
+			return
+		}
+
+		// 4. Validar baneos y estado del dispositivo
+		if tokenData.IsShadowbanned {
+			w.WriteHeader(http.StatusForbidden)
+			w.Write([]byte(`{"error": "Account is suspended"}`))
+			return
+		}
+		if !tokenData.DeviceActive {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"error": "Device has been revoked"}`))
+			return
+		}
+		
+		// 6. Inyectar IDs en el contexto
+		ctx = context.WithValue(ctx, userIDKey, tokenData.UserID)
+		ctx = context.WithValue(ctx, deviceIDKey, tokenData.DeviceID)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// AuthMiddleware es la versión de envoltura directa (func(HandlerFunc) HandlerFunc)
+func (s *Server) AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		s.AuthMiddlewareChi(next).ServeHTTP(w, r)
+	}
+}
+
+// Helper functions for handlers
+func getUserID(ctx context.Context) int64 {
+	id, _ := ctx.Value(userIDKey).(int64)
+	return id
+}
+
+func getDeviceID(ctx context.Context) int64 {
+	id, _ := ctx.Value(deviceIDKey).(int64)
+	return id
+}
+
+// RequirePermissionChi devuelve un middleware de Chi que chequea permisos
+func (s *Server) RequirePermissionChi(permission string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			userID := getUserID(r.Context())
+			
+			if userID == 0 {
+				http.Error(w, `{"error": "No autenticado"}`, http.StatusUnauthorized)
+				return
+			}
+
+			// SUPERADMIN BYPASS: El usuario 1 tiene permisos absolutos
+			if userID == 1 {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			hasPermission, err := s.db.CheckUserPermission(r.Context(), db.CheckUserPermissionParams{
+				UserID: userID,
+				Name:   permission,
+			})
+
+			if err != nil {
+				log.Printf("Error chequeando permisos para UserID %d: %v", userID, err)
+				http.Error(w, `{"error": "Error interno del servidor"}`, http.StatusInternalServerError)
+				return
+			}
+
+			if !hasPermission {
+				log.Printf("Acceso denegado: UserID %d intentó acceder sin el permiso '%s'", userID, permission)
+				w.WriteHeader(http.StatusForbidden)
+				w.Write([]byte(`{"error": "No tienes los permisos necesarios para realizar esta acción"}`))
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+// RequirePermission es la versión wrapper directa
+func (s *Server) RequirePermission(permission string) func(http.HandlerFunc) http.HandlerFunc {
+	return func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			s.RequirePermissionChi(permission)(next).ServeHTTP(w, r)
+		}
+	}
+}

@@ -1,0 +1,95 @@
+version: '3.8'
+
+# Esta red externa es la que conectará a Gemflix con tu proxy global (Traefik) en el servidor Ubuntu.
+# Se debe crear en tu Ubuntu con: `docker network create traefik_web_network`
+networks:
+  traefik_web_network:
+    external: true
+  gemflix_internal:
+    driver: bridge
+
+services:
+  # Base de Datos
+  postgres:
+    image: postgres:15-alpine
+    container_name: gemflix-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-root}
+      POSTGRES_DB: ${POSTGRES_DB:-gemflix}
+    volumes:
+      - gemflix_pgdata:/var/lib/postgresql/data
+    networks:
+      - gemflix_internal
+    # Limitar el uso de CPU/RAM para PostgreSQL
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+
+  # Backend Go
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gemflix-backend
+    restart: always
+    environment:
+      - DB_SOURCE=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-root}@postgres:5432/${POSTGRES_DB:-gemflix}?sslmode=disable
+      - PORT=8080
+      # Añadir variables de entorno secretas desde un archivo .env
+    env_file:
+      - ./backend/.env
+    networks:
+      - gemflix_internal
+      - traefik_web_network
+    depends_on:
+      - postgres
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+    labels:
+      - "traefik.enable=true"
+      # Rutas para el backend (API)
+      - "traefik.http.routers.gemflix-api.rule=Host(`api.tudominio.com`)"
+      - "traefik.http.routers.gemflix-api.entrypoints=websecure"
+      - "traefik.http.routers.gemflix-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.gemflix-api.loadbalancer.server.port=8080"
+
+  # Frontend Next.js
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: gemflix-frontend
+    restart: always
+    environment:
+      - NEXT_PUBLIC_API_URL=https://api.tudominio.com
+    networks:
+      - traefik_web_network
+    depends_on:
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+    labels:
+      - "traefik.enable=true"
+      # Rutas para el frontend (Web principal)
+      - "traefik.http.routers.gemflix-web.rule=Host(`tudominio.com`, `www.tudominio.com`)"
+      - "traefik.http.routers.gemflix-web.entrypoints=websecure"
+      - "traefik.http.routers.gemflix-web.tls.certresolver=letsencrypt"
+      - "traefik.http.services.gemflix-web.loadbalancer.server.port=3000"
+      
+      # Si tienes un subdominio para admin
+      - "traefik.http.routers.gemflix-admin.rule=Host(`admin.tudominio.com`)"
+      - "traefik.http.routers.gemflix-admin.entrypoints=websecure"
+      - "traefik.http.routers.gemflix-admin.tls.certresolver=letsencrypt"
+
+volumes:
+  gemflix_pgdata:

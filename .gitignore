@@ -1,0 +1,31 @@
+# Dependencias Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build Next.js
+frontend/.next/
+frontend/out/
+
+# Entorno
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build Go
+backend/gemflix-backend
+backend/gemflix-backend.exe
+backend/bin/
+
+# Temporales de IDE y SO
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
