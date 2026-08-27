@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Esta red externa es la que conectará a Gemflix con tu proxy global (Traefik) en el servidor Ubuntu.
 # Se debe crear en tu Ubuntu con: `docker network create traefik_web_network`
 networks:
