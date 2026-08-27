@@ -30,6 +30,12 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
   
+  // 1.5. LOGIN GLOBAL (Único para todos los subdominios)
+  // Si están en la ruta de login, no reescribimos al subdominio, dejamos que vaya a app/login
+  if (url.pathname.startsWith('/login')) {
+    return NextResponse.rewrite(new URL(url.pathname, req.url));
+  }
+  
   // 2. Definimos mapeos de subdominios a rutas
   const hasSession = req.cookies.has('access_token');
   const roleValue = req.cookies.get('gemflix_staff_role')?.value || 'user';

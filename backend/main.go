@@ -41,6 +41,12 @@ func main() {
 	}
 	fmt.Println("✅ ¡Conectado exitosamente a PostgreSQL (GEMFLIX)!")
 
+	// 1. Ejecutar migraciones automáticas
+	runDBMigration(databaseURL)
+
+	// 2. Aprovisionar Super Admin si es necesario
+	provisionSuperAdmin(ctx, dbPool)
+
 	// Inicializar los queries de sqlc
 	queries := db.New(dbPool)
 
