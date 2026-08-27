@@ -104,6 +104,8 @@ services:
           memory: 512M
     labels:
       - "traefik.enable=true"
+      # Forzar a Traefik a usar la red pública (necesario cuando el contenedor está en múltiples redes)
+      - "traefik.docker.network=traefik_web_network"
       # Middleware global de redirección HTTPS
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       
