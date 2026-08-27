@@ -35,7 +35,7 @@ export default function MoviesPage() {
     try {
       const res = await fetch("/api/admin/movies", { credentials: "include" });
       if (res.status === 401) {
-        router.push("/admin/login");
+        router.push("/login");
         return;
       }
       if (!res.ok) {

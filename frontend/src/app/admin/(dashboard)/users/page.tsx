@@ -14,7 +14,7 @@ export default function UsersPage() {
       try {
         const res = await fetch("/api/admin/users", { credentials: "include" });
         if (res.status === 401) {
-          router.push("/admin/login");
+          router.push("/login");
           return;
         }
         const data = await res.json();

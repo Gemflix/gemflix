@@ -34,7 +34,7 @@ export default function SeriesPage() {
     try {
       const res = await fetch("/api/admin/series", { credentials: "include" });
       if (res.status === 401) {
-        router.push("/admin/login");
+        router.push("/login");
         return;
       }
       if (!res.ok) {

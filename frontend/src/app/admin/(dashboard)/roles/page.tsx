@@ -23,7 +23,7 @@ export default function RolesPage() {
       ]);
       
       if (rolesRes.status === 401) {
-        router.push("/admin/login");
+        router.push("/login");
         return;
       }
       

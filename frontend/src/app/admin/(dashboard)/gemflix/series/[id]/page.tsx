@@ -80,7 +80,7 @@ export default function EditSeriePage({ params }: { params: Promise<{ id: string
       try {
         const res = await fetch(`/api/admin/series/${id}`, { credentials: "include" });
         if (!res.ok) {
-          if (res.status === 401) router.push("/admin/login");
+          if (res.status === 401) router.push("/login");
           else throw new Error("Error fetching");
           return;
         }
@@ -1392,3 +1392,4 @@ export default function EditSeriePage({ params }: { params: Promise<{ id: string
     </div>
   );
 }
+

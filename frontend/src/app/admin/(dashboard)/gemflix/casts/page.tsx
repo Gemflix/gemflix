@@ -21,7 +21,7 @@ export default function CastsPage() {
     try {
       const res = await fetch("/api/admin/casts", { credentials: "include" });
       if (!res.ok) {
-        if (res.status === 401) router.push("/admin/login");
+        if (res.status === 401) router.push("/login");
         return;
       }
       const data = await res.json();

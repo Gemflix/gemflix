@@ -19,7 +19,7 @@ export default function AdminDashboard() {
         ]);
 
         if (statsRes.status === 401 || usersRes.status === 401) {
-          router.push("/admin/login");
+          router.push("/login");
           return;
         }
 

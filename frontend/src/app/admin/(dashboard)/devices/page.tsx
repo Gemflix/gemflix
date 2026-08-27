@@ -14,7 +14,7 @@ export default function DevicesPage() {
       try {
         const res = await fetch("/api/admin/devices", { credentials: "include" });
         if (res.status === 401) {
-          router.push("/admin/login");
+          router.push("/login");
           return;
         }
         const data = await res.json();

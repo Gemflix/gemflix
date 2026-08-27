@@ -25,7 +25,7 @@ export default function StaffPage() {
       ]);
       
       if (staffRes.status === 401) {
-        router.push("/admin/login");
+        router.push("/login");
         return;
       }
       
