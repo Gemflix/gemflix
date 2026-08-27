@@ -1,17 +1,20 @@
 import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { getApiUrl } from "@/lib/api";
 
 export const metadata = {
-  title: "Elenco y Equipo | Gemflix",
+  title: "Reparto | Gemflix",
 };
 
 async function getCasts(searchParams: { [key: string]: string | string[] | undefined }) {
   const params = new URLSearchParams();
+  if (searchParams.q) params.set("q", searchParams.q as string);
   if (searchParams.limit) params.set("limit", searchParams.limit as string);
   if (searchParams.offset) params.set("offset", searchParams.offset as string);
   
-  const url = `http://localhost:8080/api/play/explore/casts?${params.toString()}`;
+  const apiUrl = getApiUrl();
+  const url = `${apiUrl}/api/play/explore/casts?${params.toString()}`;
   
   try {
     const res = await fetch(url, { cache: 'no-store' });

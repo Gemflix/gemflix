@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { getApiUrl } from "@/lib/api";
 
 export const metadata = {
   title: "Colecciones | Gemflix",
@@ -11,7 +12,8 @@ async function getCollections(searchParams: { [key: string]: string | string[] |
   if (searchParams.limit) params.set("limit", searchParams.limit as string);
   if (searchParams.offset) params.set("offset", searchParams.offset as string);
   
-  const url = `http://localhost:8080/api/play/explore/collections?${params.toString()}`;
+  const apiUrl = getApiUrl();
+  const url = `${apiUrl}/api/play/explore/collections?${params.toString()}`;
   
   try {
     const res = await fetch(url, { cache: 'no-store' });

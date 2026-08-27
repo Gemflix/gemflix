@@ -1,5 +1,7 @@
 import ThemeProvider, { ThemeConfig } from "./ThemeProvider";
-import { Navbar } from "@/components/play/navigation/Navbar";
+import { TopBar } from "@/components/play/navigation/TopBar";
+import { Footer } from "@/components/play/navigation/Footer";
+import { getApiUrl } from "@/lib/api";
 
 async function getGlobalTheme(): Promise<ThemeConfig> {
   const defaultTheme: ThemeConfig = {
@@ -9,7 +11,8 @@ async function getGlobalTheme(): Promise<ThemeConfig> {
   };
 
   try {
-    const res = await fetch("http://localhost:8080/api/play/settings", { 
+    const apiUrl = getApiUrl();
+    const res = await fetch(`${apiUrl}/api/play/settings`, { 
       cache: "no-store" 
     });
     if (res.ok) {

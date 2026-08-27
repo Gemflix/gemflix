@@ -86,6 +86,7 @@ services:
     restart: always
     environment:
       - NEXT_PUBLIC_API_URL=https://api.gemflix.org
+      - API_INTERNAL_URL=http://backend:8080
     networks:
       - traefik_web_network
     depends_on:

@@ -2,12 +2,15 @@ import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { getApiUrl } from "@/lib/api";
+
 export const metadata = {
   title: "Países | Gemflix",
 };
 
 async function getCountries() {
-  const url = `http://localhost:8080/api/play/explore/countries?limit=100`;
+  const apiUrl = getApiUrl();
+  const url = `${apiUrl}/api/play/explore/countries?limit=100`;
   
   try {
     const res = await fetch(url, { cache: 'no-store' });

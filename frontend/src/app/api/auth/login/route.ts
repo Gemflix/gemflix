@@ -1,11 +1,13 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { getApiUrl } from "@/lib/api";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const goRes = await fetch("http://127.0.0.1:8080/api/auth/login", {
+    const apiUrl = getApiUrl();
+    const goRes = await fetch(`${apiUrl}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),

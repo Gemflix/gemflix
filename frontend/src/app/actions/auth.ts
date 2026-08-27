@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { getApiUrl } from "@/lib/api";
 
 interface LoginResponse {
   access_token: string;
@@ -13,12 +14,12 @@ interface LoginResponse {
   };
 }
 
-export async function loginAction(formData: FormData) {
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+export async function loginAction(formData: FormData): Promise<LoginResponse | { url: string }> {
+  const email = formData.get("email")?.toString() || "";
+  const password = formData.get("password")?.toString() || "";
   const platform = "web";
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  const apiUrl = getApiUrl();
 
   // 1. Llamada segura de servidor a servidor hacia Go
   const response = await fetch(`${apiUrl}/api/auth/login`, {
@@ -81,7 +82,7 @@ export async function loginAction(formData: FormData) {
 export async function logoutAction() {
   const cookieStore = await cookies();
   const refreshToken = cookieStore.get("refresh_token")?.value;
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  const apiUrl = getApiUrl();
 
   if (refreshToken) {
     await fetch(`${apiUrl}/api/auth/logout`, {

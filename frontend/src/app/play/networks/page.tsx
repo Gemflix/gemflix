@@ -1,13 +1,18 @@
 import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Metadata } from "next";
 
-export const metadata = {
-  title: "Plataformas | Gemflix",
+import { getApiUrl } from "@/lib/api";
+
+export const metadata: Metadata = {
+  title: "Redes y Productoras - Gemflix",
+  description: "Explora películas y series por su red de producción",
 };
 
 async function getNetworks() {
-  const url = `http://localhost:8080/api/play/explore/networks?limit=100`;
+  const apiUrl = getApiUrl();
+  const url = `${apiUrl}/api/play/explore/networks?limit=100`;
   
   try {
     const res = await fetch(url, { cache: 'no-store' });

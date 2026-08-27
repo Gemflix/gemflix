@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import CatalogFilterBar from "@/components/play/catalog/CatalogFilterBar";
 import MediaGrid from "@/components/play/catalog/MediaGrid";
+import { getApiUrl } from "@/lib/api";
 
 interface CatalogViewProps {
   title: string;
@@ -21,7 +22,8 @@ async function getCatalogData(endpoint: string, searchParams: { [key: string]: s
   if (searchParams.countryId) params.set("countryId", searchParams.countryId as string);
   if (searchParams.year) params.set("year", searchParams.year as string);
   
-  const url = `http://localhost:8080/api/play/catalog/${endpoint}?${params.toString()}`;
+  const apiUrl = getApiUrl();
+  const url = `${apiUrl}/api/play/catalog/${endpoint}?${params.toString()}`;
   
   try {
     const res = await fetch(url, { cache: 'no-store' });
