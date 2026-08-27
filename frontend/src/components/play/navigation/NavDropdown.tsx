@@ -66,7 +66,7 @@ export function NavDropdownItem({ href, emoji, children, variantClass = "text-gr
   return (
     <Link 
       href={href}
-      className={`block px-4 py-2.5 text-sm transition-all duration-300 flex items-center gap-3 ${variantClass}`}
+      className={`flex px-4 py-2.5 text-sm transition-all duration-300 items-center gap-3 ${variantClass}`}
     >
       <span className="text-lg">{emoji}</span>
       {children}
