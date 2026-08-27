@@ -46,31 +46,32 @@ export async function loginAction(formData: FormData): Promise<LoginResponse | {
   const data: LoginResponse = await response.json();
   const cookieStore = await cookies();
 
-  // 2. Almacenar tokens en cookies seguras e invisibles para JS del navegador
-  cookieStore.set("access_token", data.access_token, {
+  // Definir las opciones base de la cookie para que funcione en todos los subdominios
+  const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax", // Lax es mejor para permitir navegación general
-    maxAge: 60 * 15, // 15 minutos
+    sameSite: "lax" as const,
     path: "/",
+    domain: process.env.NODE_ENV === "production" ? ".gemflix.org" : undefined,
+  };
+
+  // 2. Almacenar tokens en cookies seguras e invisibles para JS del navegador
+  cookieStore.set("access_token", data.access_token, {
+    ...cookieOptions,
+    maxAge: 60 * 15, // 15 minutos
   });
 
   cookieStore.set("refresh_token", data.refresh_token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    ...cookieOptions,
     maxAge: 60 * 60 * 24 * 7, // 7 días
-    path: "/",
   });
 
   // Guardar rol genérico para el middleware (esto sí puede ser leído por JS si hace falta)
   const isStaff = data.user.roles?.length > 0 || data.user.id === 1;
   cookieStore.set("gemflix_staff_role", isStaff ? "admin" : "user", {
+    ...cookieOptions,
     httpOnly: false,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
     maxAge: 60 * 60 * 24 * 7,
-    path: "/",
   });
 
   // Redirigir según el rol
@@ -95,9 +96,14 @@ export async function logoutAction() {
     });
   }
 
-  cookieStore.delete("access_token");
-  cookieStore.delete("refresh_token");
-  cookieStore.delete("gemflix_staff_role");
+  const cookieOptions = {
+    path: "/",
+    domain: process.env.NODE_ENV === "production" ? ".gemflix.org" : undefined,
+  };
+
+  cookieStore.delete({ name: "access_token", ...cookieOptions });
+  cookieStore.delete({ name: "refresh_token", ...cookieOptions });
+  cookieStore.delete({ name: "gemflix_staff_role", ...cookieOptions });
   
   redirect("/login");
 }
