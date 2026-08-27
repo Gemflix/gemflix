@@ -109,8 +109,13 @@ export function middleware(req: NextRequest) {
 
   // Si están visitando la raíz del dominio principal gemflix.org (sin subdominio)
   if (currentHost === baseDomain) {
-    // Si tienen sesión y visitan la raíz, enviarlos al hub
-    if (hasSession && url.pathname === '/') {
+    // Si tienen sesión y son staff, enviarlos al panel admin
+    if (hasSession && isStaff && url.pathname === '/') {
+      return redirectToAdmin();
+    }
+    
+    // Si tienen sesión y visitan la raíz (usuario normal), enviarlos al hub
+    if (hasSession && !isStaff && url.pathname === '/') {
       return NextResponse.redirect(new URL('/hub', req.url));
     }
     
