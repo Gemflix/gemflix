@@ -111,7 +111,7 @@ export function HeroCarousel({ hero, viewMode }: { hero: HeroData, viewMode: str
               </span>
               <div className="h-3 w-px bg-white/20"></div>
               <div className="flex items-center gap-2">
-                  <button className="h-2 rounded-full transition-all duration-500 shadow-md focus:outline-none w-8 bg-linear-to-r from-orange-500 to-amber-500 shadow-md"></button>
+                  <button className="h-2 rounded-full transition-all duration-500 shadow-md focus:outline-none w-8 bg-linear-to-r from-orange-500 to-amber-500"></button>
               </div>
           </div>
         </div>
