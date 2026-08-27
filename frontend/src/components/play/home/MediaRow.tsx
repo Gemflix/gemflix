@@ -56,22 +56,22 @@ export function MediaRow({ title, items, rowType = 'posters' }: MediaRowProps) {
                 
                 {/* Hover Overlay */}
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <div className="w-12 h-12 rounded-full border-2 border-[var(--accent)] flex items-center justify-center bg-black/40">
-                    <Play className="w-6 h-6 fill-[var(--accent)] text-[var(--accent)] ml-1" />
+                  <div className="w-12 h-12 rounded-full border-2 border-accent flex items-center justify-center bg-black/40">
+                    <Play className="w-6 h-6 fill-accent text-accent ml-1" />
                   </div>
                 </div>
               </div>
               
               {/* Info section for episodes/continue */}
               {isLandscape && (
-                <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black via-black/80 to-transparent">
+                <div className="absolute bottom-0 inset-x-0 p-3 bg-linear-to-t from-black via-black/80 to-transparent">
                   <h3 className="text-sm font-semibold truncate text-white drop-shadow-md">
                     {item.title}
                   </h3>
                   {rowType === 'continue' && (
                     <div className="w-full h-1 bg-white/30 rounded-full mt-2 overflow-hidden">
                       {/* TODO: use percentage when available, mock 50% for now */}
-                      <div className="h-full bg-[var(--accent)] w-1/2"></div>
+                      <div className="h-full bg-accent w-1/2"></div>
                     </div>
                   )}
                 </div>

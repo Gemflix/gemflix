@@ -89,7 +89,7 @@ export function HomeTabs({ tabs, activeTab, onTabChange }: HomeTabsProps) {
               {tab.label}
               
               {isActive && (
-                <div className="absolute inset-0 rounded-full bg-gradient-to-t from-black/10 to-white/20 pointer-events-none" />
+                <div className="absolute inset-0 rounded-full bg-linear-to-t from-black/10 to-white/20 pointer-events-none" />
               )}
             </button>
           );

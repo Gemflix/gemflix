@@ -44,7 +44,7 @@ export function Navbar() {
       <div className="mx-auto max-w-[1600px] px-6 h-20 flex items-center justify-between gap-8">
         
         {/* LOGO */}
-        <Link href="/play" className="flex-shrink-0 transition-transform hover:scale-105 relative group">
+        <Link href="/play" className="shrink-0 transition-transform hover:scale-105 relative group">
           <div className="absolute -inset-2 bg-primary-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition duration-500" style={{ backgroundColor: 'var(--accent)' }}></div>
           {theme.logoUrl ? (
             <Image src={theme.logoUrl} alt="GEMFLIX" width={150} height={36} className="h-9 w-auto relative" unoptimized />
@@ -143,7 +143,7 @@ export function Navbar() {
           <ThemeSwitcher />
 
           {/* Botón Planes */}
-          <Link href="/pricing" className="hidden lg:flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white text-sm font-bold shadow-lg shadow-purple-500/20 hover:scale-105 hover:shadow-purple-500/40 transition-all duration-300">
+          <Link href="/pricing" className="hidden lg:flex items-center gap-2 px-4 py-2 rounded-lg bg-linear-to-r from-fuchsia-600 to-purple-600 text-white text-sm font-bold shadow-lg shadow-purple-500/20 hover:scale-105 hover:shadow-purple-500/40 transition-all duration-300">
             👑 Planes
           </Link>
 

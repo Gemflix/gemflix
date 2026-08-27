@@ -40,7 +40,7 @@ export default function LandingPage() {
       <nav className="flex items-center justify-between px-8 py-6 max-w-7xl mx-auto relative z-10">
         <div className="flex items-center gap-2">
           <Layers className="w-8 h-8 text-indigo-500" />
-          <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400 tracking-tight">
+          <span className="text-2xl font-bold bg-clip-text text-transparent bg-linear-to-r from-white to-slate-400 tracking-tight">
             Gemflix
           </span>
         </div>
@@ -70,7 +70,7 @@ export default function LandingPage() {
           transition={{ duration: 0.5, delay: 0.1 }}
           className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 text-white max-w-4xl"
         >
-          Un ecosistema diseñado para <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-cyan-400">romper los límites</span>
+          Un ecosistema diseñado para <span className="bg-clip-text text-transparent bg-linear-to-r from-indigo-400 to-cyan-400">romper los límites</span>
         </motion.h1>
 
         <motion.p 

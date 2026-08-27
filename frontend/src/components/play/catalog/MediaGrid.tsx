@@ -30,7 +30,7 @@ export default function MediaGrid({ items, basePath }: { items: MediaItem[], bas
           href={`/play/${basePath}/${item.slug}`}
           className="group relative flex flex-col gap-2 rounded-lg overflow-hidden"
         >
-          <div className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-gray-900 border border-gray-800">
+          <div className="relative aspect-2/3 w-full rounded-lg overflow-hidden bg-gray-900 border border-gray-800">
             {item.poster_path ? (
               <Image
                 src={item.poster_path}

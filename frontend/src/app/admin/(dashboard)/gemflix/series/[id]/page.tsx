@@ -1003,7 +1003,7 @@ export default function EditSeriePage({ params }: { params: Promise<{ id: string
                           {season.episodes.map((ep: any) => (
                             <div key={ep.id} className="flex flex-col md:flex-row items-center justify-between bg-[#1A1A24] p-3 rounded-lg border border-white/5">
                               <div className="flex items-center gap-4 w-full md:w-auto">
-                                <div className="text-accent font-bold text-lg min-w-[30px]">{ep.episode_number}</div>
+                                <div className="text-accent font-bold text-lg min-w-7.5">{ep.episode_number}</div>
                                 {ep.still_path ? (
                                   <img src={`https://image.tmdb.org/t/p/w300${ep.still_path}`} className="w-24 h-14 object-cover rounded-md hidden md:block" alt="" />
                                 ) : (
@@ -1130,7 +1130,7 @@ export default function EditSeriePage({ params }: { params: Promise<{ id: string
 
       {/* Modal Editar Episodio */}
       {editingEpisode && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
           <div className="bg-[#1A1A24] border border-white/10 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-white">Editar Episodio {editingEpisode.episode_number}</h2>
@@ -1166,7 +1166,7 @@ export default function EditSeriePage({ params }: { params: Promise<{ id: string
 
       {/* Modal Gestionar Enlaces */}
       {managingEpisode && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
           <div className="bg-[#1A1A24] border border-white/10 rounded-2xl p-6 w-full max-w-5xl max-h-[90vh] flex flex-col">
             <div className="flex justify-between items-center mb-6 shrink-0">
               <h2 className="text-xl font-bold text-white">Enlaces - Episodio {managingEpisode.episode_number}</h2>
@@ -1197,7 +1197,7 @@ export default function EditSeriePage({ params }: { params: Promise<{ id: string
                           <td className="px-4 py-3">{s.label}</td>
                           <td className="px-4 py-3"><span className="text-gray-400 uppercase text-xs font-bold tracking-wider">{s.type || 'directo'}</span></td>
                           <td className="px-4 py-3"><span className="bg-white/10 px-2 py-1 rounded text-xs">{s.quality}</span></td>
-                          <td className="px-4 py-3 font-mono text-xs max-w-[200px] truncate" title={s.link}>{s.link}</td>
+                          <td className="px-4 py-3 font-mono text-xs max-w-50 truncate" title={s.link}>{s.link}</td>
                           <td className="px-4 py-3 text-right">
                             <button onClick={() => openMediaSourceDetails(s)} className="p-1 text-accent hover:text-accent-hover hover:bg-accent/10 rounded mr-2" title="Audios y Subtítulos">
                               <Film className="w-4 h-4" />
@@ -1316,7 +1316,7 @@ export default function EditSeriePage({ params }: { params: Promise<{ id: string
 
       {/* Modal Audios y Subtítulos */}
       {managingMediaSource && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+        <div className="fixed inset-0 z-110 flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
           <div className="bg-[#1A1A24] border border-white/10 rounded-2xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-white">Audios & Subtítulos - {managingMediaSource.label}</h2>

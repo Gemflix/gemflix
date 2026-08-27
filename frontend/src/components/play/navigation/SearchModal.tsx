@@ -85,7 +85,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const hasResults = results.movies.length > 0 || results.series.length > 0;
 
   return (
-    <div className="fixed inset-0 z-[100] flex justify-center items-start pt-[10vh] px-4 sm:px-0">
+    <div className="fixed inset-0 z-100 flex justify-center items-start pt-[10vh] px-4 sm:px-0">
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose}></div>
       
       <div className="relative w-full max-w-2xl bg-[#121418] border border-gray-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -134,7 +134,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                         onClick={onClose}
                         className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-800 transition-colors"
                       >
-                        <div className="relative w-10 h-14 bg-gray-900 rounded overflow-hidden flex-shrink-0">
+                        <div className="relative w-10 h-14 bg-gray-900 rounded overflow-hidden shrink-0">
                           {movie.poster_path && (
                             <Image src={movie.poster_path} alt={movie.title} fill className="object-cover" />
                           )}
@@ -160,7 +160,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                         onClick={onClose}
                         className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-800 transition-colors"
                       >
-                        <div className="relative w-10 h-14 bg-gray-900 rounded overflow-hidden flex-shrink-0">
+                        <div className="relative w-10 h-14 bg-gray-900 rounded overflow-hidden shrink-0">
                           {serie.poster_path && (
                             <Image src={serie.poster_path} alt={serie.title} fill className="object-cover" />
                           )}

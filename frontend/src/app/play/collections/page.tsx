@@ -44,7 +44,7 @@ export default async function CollectionsPage({
             <Link 
               key={col.id} 
               href={`/play/collection/${col.slug}`}
-              className="group relative rounded-xl overflow-hidden aspect-[16/9] bg-gray-900 border border-gray-800"
+              className="group relative rounded-xl overflow-hidden aspect-video bg-gray-900 border border-gray-800"
             >
               {col.backdrop_path ? (
                 <Image
@@ -64,7 +64,7 @@ export default async function CollectionsPage({
                 <div className="w-full h-full flex items-center justify-center text-gray-700">Sin Imagen</div>
               )}
               
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+              <div className="absolute inset-0 bg-linear-to-t from-black via-black/40 to-transparent"></div>
               
               <div className="absolute bottom-0 left-0 p-6 w-full">
                 <h3 className="text-xl font-bold text-white group-hover:text-red-500 transition-colors drop-shadow-md">

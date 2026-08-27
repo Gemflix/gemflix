@@ -23,11 +23,11 @@ export default function AdminLogin() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
       {/* Luces decorativas */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent rounded-full blur-[120px] opacity-[0.05] pointer-events-none"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-accent rounded-full blur-[120px] opacity-[0.05] pointer-events-none"></div>
       
       <div className="glass-panel w-full max-w-md p-8 rounded-2xl z-10 animate-in fade-in zoom-in-95 duration-500">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent tracking-wider mb-2">
+          <h1 className="text-3xl font-bold bg-linear-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent tracking-wider mb-2">
             GEMFLIX
           </h1>
           <p className="text-gray-400 text-sm">Panel de Administración Segura</p>
@@ -78,7 +78,7 @@ export default function AdminLogin() {
           <button 
             type="submit" 
             disabled={isPending}
-            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-orange-500/20 flex justify-center items-center gap-2 mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full bg-linear-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-orange-500/20 flex justify-center items-center gap-2 mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isPending ? <Loader2 size={20} className="animate-spin" /> : "Iniciar Sesión Segura"}
           </button>

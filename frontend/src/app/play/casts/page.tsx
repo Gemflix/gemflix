@@ -46,7 +46,7 @@ export default async function CastsPage({
               href={`/play/cast/${cast.id}`}
               className="group flex flex-col items-center"
             >
-              <div className="w-full aspect-[2/3] relative rounded-lg overflow-hidden mb-3 bg-gray-900 border border-gray-800 shadow-lg">
+              <div className="w-full aspect-2/3 relative rounded-lg overflow-hidden mb-3 bg-gray-900 border border-gray-800 shadow-lg">
                 {cast.profile_path ? (
                   <Image
                     src={cast.profile_path}

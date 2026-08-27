@@ -57,7 +57,7 @@ export default function SettingsPage() {
       
       <div className="flex flex-col md:flex-row gap-8">
         {/* SIDEBAR TABS */}
-        <div className="w-full md:w-64 flex-shrink-0">
+        <div className="w-full md:w-64 shrink-0">
           <div className="flex flex-col space-y-1 bg-[#111] p-2 rounded-xl border border-gray-800">
             <button 
               onClick={() => setActiveTab("profile")}
@@ -109,7 +109,7 @@ export default function SettingsPage() {
                 <h2 className="text-2xl font-bold text-white mb-6">Tu Plan Actual</h2>
                 
                 {subscription ? (
-                  <div className="bg-gradient-to-r from-purple-900/50 to-indigo-900/50 border border-purple-500/30 rounded-xl p-6">
+                  <div className="bg-linear-to-r from-purple-900/50 to-indigo-900/50 border border-purple-500/30 rounded-xl p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <h3 className="text-3xl font-black text-white">{subscription.plan_name}</h3>
