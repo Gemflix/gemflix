@@ -55,6 +55,9 @@ services:
       - REDIS_URL=redis:6379
       - PORT=8080
       # Variables secretas manejadas por Komodo en el entorno
+      - SUPERADMIN_EMAIL=${SUPERADMIN_EMAIL}
+      - SUPERADMIN_PASSWORD=${SUPERADMIN_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
     networks:
       - gemflix_internal
       - traefik_web_network
