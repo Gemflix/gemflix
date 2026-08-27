@@ -90,8 +90,10 @@ services:
     environment:
       - NEXT_PUBLIC_API_URL=https://api.gemflix.org
       - API_INTERNAL_URL=http://backend:8080
+      - TURNSTILE_SECRET_KEY=${TURNSTILE_SECRET_KEY}
     networks:
       - traefik_web_network
+      - gemflix_internal
     depends_on:
       - backend
     deploy:
