@@ -30,7 +30,7 @@ export function NavDropdown({ label, children }: NavDropdownProps) {
     >
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="px-4 py-2 text-sm font-bold text-gray-300 hover:text-white rounded-lg transition-colors block items-center gap-1 group-hover:text-cyan-400 focus:outline-none"
+        className="px-4 py-2 text-sm font-bold text-gray-300 hover:text-white rounded-lg transition-colors flex items-center gap-1 group-hover:text-cyan-400 focus:outline-none"
       >
         {label}
         <svg 
@@ -66,7 +66,7 @@ export function NavDropdownItem({ href, emoji, children, variantClass = "text-gr
   return (
     <Link 
       href={href}
-      className={`block px-4 py-2.5 text-sm transition-all duration-300 block items-center gap-3 ${variantClass}`}
+      className={`block px-4 py-2.5 text-sm transition-all duration-300 flex items-center gap-3 ${variantClass}`}
     >
       <span className="text-lg">{emoji}</span>
       {children}
@@ -77,3 +77,5 @@ export function NavDropdownItem({ href, emoji, children, variantClass = "text-gr
 export function NavDropdownDivider() {
   return <div className="h-px bg-linear-to-r from-transparent via-white/10 to-transparent my-2" />;
 }
+
+
