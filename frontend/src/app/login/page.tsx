@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useTransition } from "react";
+import { useState, useRef, useTransition, useEffect } from "react";
 import { Lock, Mail, Loader2, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { Turnstile } from "@marsidev/react-turnstile";
 import { loginAction } from "@/app/actions/auth";
@@ -10,10 +10,18 @@ export default function AdminLogin() {
   const [rememberMe, setRememberMe]     = useState(false);
   const [error, setError]               = useState("");
   const [captchaReady, setCaptchaReady] = useState(false);
+  const [siteKey, setSiteKey]           = useState("");
   const [isPending, startTransition]    = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
 
-  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
+  // Obtener la clave de Turnstile desde el servidor en tiempo de ejecución
+  // Así no necesitamos variables NEXT_PUBLIC_ de build-time
+  useEffect(() => {
+    fetch("/api/config")
+      .then(r => r.json())
+      .then(data => { if (data.turnstileSiteKey) setSiteKey(data.turnstileSiteKey); })
+      .catch(() => {});
+  }, []);
 
   const handleAction = async (formData: FormData) => {
     setError("");
