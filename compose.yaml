@@ -17,7 +17,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-root}
       POSTGRES_DB: ${POSTGRES_DB:-gemflix}
     volumes:
-      - gemflix_pgdata:/var/lib/postgresql
+      - gemflix_pgdata_secure:/var/lib/postgresql
       - /etc/localtime:/etc/localtime:ro
     networks:
       - gemflix_internal
@@ -140,4 +140,4 @@ services:
       - "traefik.http.routers.gemflix-www-http.service=gemflix-web"
 
 volumes:
-  gemflix_pgdata:
+  gemflix_pgdata_secure:
