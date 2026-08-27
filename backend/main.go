@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -21,9 +22,29 @@ func main() {
 		log.Println("Aviso: No se encontró archivo .env, usando variables del entorno del sistema")
 	}
 
-	databaseURL := os.Getenv("DATABASE_URL")
-	if databaseURL == "" {
-		databaseURL = "postgres://postgres:postgres@localhost:5432/gemflix_db?sslmode=disable"
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASSWORD")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
+
+	var databaseURL string
+	if dbUser != "" && dbHost != "" {
+		importURL := url.URL{
+			Scheme: "postgres",
+			User:   url.UserPassword(dbUser, dbPass),
+			Host:   fmt.Sprintf("%s:%s", dbHost, dbPort),
+			Path:   dbName,
+		}
+		q := importURL.Query()
+		q.Set("sslmode", "disable")
+		importURL.RawQuery = q.Encode()
+		databaseURL = importURL.String()
+	} else {
+		databaseURL = os.Getenv("DATABASE_URL")
+		if databaseURL == "" {
+			databaseURL = "postgres://postgres:postgres@localhost:5432/gemflix_db?sslmode=disable"
+		}
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
