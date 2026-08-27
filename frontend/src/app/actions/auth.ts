@@ -31,12 +31,14 @@ export async function loginAction(formData: FormData): Promise<LoginResponse | {
 
   if (!response.ok) {
     let errorMsg = "Credenciales inválidas";
-    try {
-      const errorData = await response.json();
-      if (errorData.error) errorMsg = errorData.error;
-    } catch (e) {
-      const textError = await response.text();
-      if (textError) errorMsg = textError;
+    const textError = await response.text();
+    if (textError) {
+      try {
+        const errorData = JSON.parse(textError);
+        if (errorData.error) errorMsg = errorData.error;
+      } catch (e) {
+        errorMsg = textError;
+      }
     }
     throw new Error(errorMsg);
   }
