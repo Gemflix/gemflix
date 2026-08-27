@@ -19,7 +19,7 @@ RUN go mod download
 COPY . .
 
 # Construir el binario (omitiendo información de depuración para reducir el tamaño)
-RUN go build -ldflags="-w -s" -o gemflix-api main.go
+RUN go build -ldflags="-w -s" -o gemflix-api .
 
 # ----------------------------------
 # Etapa 2: Imagen Final (Scratch)
