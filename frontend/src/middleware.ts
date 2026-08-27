@@ -91,6 +91,11 @@ export function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL('/', req.url));
     }
 
+    // Login y rutas API NO llevan prefijo /admin — mapean a las páginas raíz de Next.js
+    if (isLoginPage || isApiRoute) {
+      return NextResponse.rewrite(new URL(path, req.url));
+    }
+
     const cleanPath = path.startsWith('/admin') ? path.replace('/admin', '') || '/' : path;
     return NextResponse.rewrite(new URL(`/admin${cleanPath === '/' ? '' : cleanPath}`, req.url));
   }
