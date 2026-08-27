@@ -72,9 +72,9 @@ export async function loginAction(formData: FormData) {
 
   // Redirigir según el rol
   if (isStaff) {
-    redirect("/admin");
+    return { url: "/admin" };
   } else {
-    redirect("/play");
+    return { url: "/play" };
   }
 }
 

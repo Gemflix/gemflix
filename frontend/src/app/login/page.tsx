@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Lock, Mail, Loader2, Eye, EyeOff } from "lucide-react";
 import { loginAction } from "@/app/actions/auth";
 
@@ -8,12 +9,16 @@ export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const handleAction = async (formData: FormData) => {
     setError("");
     startTransition(async () => {
       try {
-        await loginAction(formData);
+        const res = await loginAction(formData);
+        if (res?.url) {
+          router.push(res.url);
+        }
       } catch (err: any) {
         setError(err.message || "Error de inicio de sesión");
       }
