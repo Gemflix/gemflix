@@ -47,16 +47,7 @@ export default async function HubPage() {
     }
   ];
 
-  // Añadir admin solo si es staff
-  if (isStaff) {
-    apps.push({
-      title: "Panel Admin",
-      description: "Gestión de la Plataforma",
-      icon: <Shield className="w-8 h-8 text-emerald-500" />,
-      url: "https://admin.gemflix.org",
-      color: "bg-emerald-500/10 border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/20"
-    });
-  }
+  // Removed Admin Panel from Hub to keep it isolated and secure
 
   return (
     <div className="min-h-screen bg-[#050505] text-slate-200">
