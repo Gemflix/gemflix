@@ -17,7 +17,7 @@ export default function AdminLogin() {
       try {
         const res = await loginAction(formData);
         if (res?.url) {
-          router.push(res.url);
+          window.location.href = res.url;
         }
       } catch (err: any) {
         setError(err.message || "Error de inicio de sesión");
