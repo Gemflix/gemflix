@@ -37,11 +37,22 @@ export function middleware(req: NextRequest) {
   }
   
   // 2. Definimos mapeos de subdominios a rutas
-  const hasSession = req.cookies.has('access_token');
-  const roleValue = req.cookies.get('gemflix_staff_role')?.value || 'user';
+  const hasAccessToken  = req.cookies.has("access_token");
+  const hasRefreshToken = req.cookies.has("refresh_token");
+  const roleValue = req.cookies.get("gemflix_staff_role")?.value || "user";
   
   // Consideramos staff a cualquiera con un rol que no sea 'user' vacío
-  const isStaff = roleValue !== 'user' && roleValue !== '';
+  const isStaff = roleValue !== "user" && roleValue !== "";
+
+  // Si no hay access_token pero SÍ hay refresh_token, renovar en silencio
+  const hasSession = hasAccessToken || hasRefreshToken;
+
+  // Helper para renovar el token antes de seguir
+  const refreshAndContinue = () => {
+    const refreshUrl = new URL("/api/auth/refresh", req.url);
+    refreshUrl.searchParams.set("redirect", path);
+    return NextResponse.redirect(refreshUrl);
+  };
   
   console.log(`[Middleware] Host: ${currentHost}, hasSession: ${hasSession}, roleValue: ${roleValue}, isStaff: ${isStaff}`);
   console.log(`[Middleware] All Cookies:`, req.cookies.getAll().map(c => `${c.name}=${c.value}`).join('; '));
@@ -58,19 +69,24 @@ export function middleware(req: NextRequest) {
   // Si el host empieza con "admin."
   if (currentHost.startsWith('admin.')) {
     const isLoginPage = url.pathname.startsWith('/login');
-    const isApiRoute = url.pathname.startsWith('/api/');
+    const isApiRoute  = url.pathname.startsWith('/api/');
 
-    if (!hasSession && !isLoginPage && !isApiRoute) {
-      return NextResponse.redirect(new URL('/login', req.url));
+    if (!isLoginPage && !isApiRoute) {
+      // Sin sesión alguna → login
+      if (!hasSession) {
+        return NextResponse.redirect(new URL('/login', req.url));
+      }
+      // Tiene refresh pero no access → renovar silenciosamente
+      if (!hasAccessToken && hasRefreshToken) {
+        return refreshAndContinue();
+      }
+      // Tiene sesión pero no es staff → expulsar a play
+      if (!isStaff) {
+        return redirectToPlay();
+      }
     }
 
-    // Si tiene sesión pero no es staff, no puede estar en admin
-    // Permitimos que entren al login page para que puedan arreglar su sesión (re-login)
-    if (hasSession && !isStaff && !isApiRoute && !isLoginPage) {
-      return redirectToPlay();
-    }
-
-    // Si es staff y está en login pero ya tiene sesión
+    // Si es staff y está en login pero ya tiene sesión, mandar al panel
     if (hasSession && isStaff && isLoginPage) {
       return NextResponse.redirect(new URL('/', req.url));
     }
