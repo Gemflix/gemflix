@@ -94,7 +94,6 @@ services:
       - TURNSTILE_SECRET_KEY=${TURNSTILE_SECRET_KEY}
     networks:
       - traefik_web_network
-      - gemflix_internal
     depends_on:
       - backend
     deploy:
