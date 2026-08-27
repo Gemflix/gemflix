@@ -19,7 +19,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-root}
       POSTGRES_DB: ${POSTGRES_DB:-gemflix}
     volumes:
-      - gemflix_pgdata:/var/lib/postgresql/data
+      - gemflix_pgdata:/var/lib/postgresql
+      - /etc/localtime:/etc/localtime:ro
     networks:
       - gemflix_internal
     # Limitar el uso de CPU/RAM para PostgreSQL
