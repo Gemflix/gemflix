@@ -16,7 +16,7 @@ export default function AdminLogin() {
     startTransition(async () => {
       try {
         const res = await loginAction(formData);
-        if (res?.url) {
+        if (res && 'url' in res && res.url) {
           window.location.href = res.url;
         }
       } catch (err: any) {

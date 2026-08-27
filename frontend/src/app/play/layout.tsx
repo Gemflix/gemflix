@@ -1,6 +1,5 @@
 import ThemeProvider, { ThemeConfig } from "./ThemeProvider";
-import { TopBar } from "@/components/play/navigation/TopBar";
-import { Footer } from "@/components/play/navigation/Footer";
+import { Navbar } from "@/components/play/navigation/Navbar";
 import { getApiUrl } from "@/lib/api";
 
 async function getGlobalTheme(): Promise<ThemeConfig> {
