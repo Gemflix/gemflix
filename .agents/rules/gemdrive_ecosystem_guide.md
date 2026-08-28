@@ -60,3 +60,16 @@ This rule defines the architecture and mandatory behavior for implementing the "
 - **Workers:** Background syncs and replica operations are handled by the Go worker daemon. The Next.js frontend is purely an interface to interact with the Postgres Database and Go API.
 - **No Test Files:** Do NOT create `*.test.tsx`, `*.spec.ts`, or `*_test.go` files in the repository. Do not leave compiled binaries or download traces. Keep the repository 100% clean.
 - **Database:** Do not create manual SQL patches for tables that already exist. Use the established `sqlc` pipeline.
+
+## 6. Environment Variables and Secrets (Rules)
+- **Go Backend (`compose.yaml` or Komodo):**
+  - Needs `DRIVE_WORKER_SECRET` to authenticate incoming requests from the Cloudflare Worker.
+  - Needs `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` to perform OAuth Refresh Token exchanges for the Personal/Workspace identities stored in the database.
+  - Optional: `GOOGLE_DRIVE_BOOTSTRAP_EMAIL` and `GOOGLE_DRIVE_BOOTSTRAP_REFRESH_TOKEN` for initial bootstrapping without DB records.
+  - *Note:* It does NOT need Cloudflare API Tokens (`CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN`) unless explicitly building a cache-purge feature.
+
+- **Cloudflare Edge Worker (Cloudflare Dashboard):**
+  - `DRIVE_WORKER_SECRET`: The shared secret matching the backend.
+  - `STORAGE_VALIDATE_URL`: Points to `https://api.gemflix.org/api/drive/worker/validate-ticket`.
+  - `STORAGE_ORIGIN_URL`: Points to `https://api.gemflix.org/api/drive/worker/origin-credentials`.
+  - `SECURITY_EVENT_URL` (optional): Points to `https://api.gemflix.org/api/drive/worker/security-event`.
