@@ -84,9 +84,12 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
             name: "Infraestructura Drive TI", 
             icon: HardDrive, 
             subItems: [
-              { name: "Monitor de Sincronización", href: "/admin/gemdrive/monitor" },
               { name: "Cuentas de Servicio", href: "/admin/gemdrive/accounts" },
+              { name: "Cuotas y Límites", href: "/admin/gemdrive/quotas" },
               { name: "Fuentes (Catálogo)", href: "/admin/gemdrive/sources" },
+              { name: "GemReplicas (Targets)", href: "/admin/gemdrive/replicas" },
+              { name: "Archivos (Items)", href: "/admin/gemdrive/files" },
+              { name: "Historial Sync (Monitor)", href: "/admin/gemdrive/monitor" },
             ] 
           },
         ];

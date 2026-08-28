@@ -7,7 +7,7 @@ import (
 
 func (s *Server) handleGetProfiles(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	
+
 	// Extraer UserID del contexto inyectado por el AuthMiddleware
 	userID := getUserID(ctx)
 

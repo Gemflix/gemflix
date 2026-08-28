@@ -36,10 +36,10 @@ func (s *Server) handleWorkerValidateTicket(w http.ResponseWriter, r *http.Reque
 
 	// TODO: Fetch real ticket from DB or Redis using req.Ticket
 	// For now, we mock the response to satisfy the worker format
-	
+
 	// The worker expects a JSON like:
 	// { "valid": true, "data": { "expires_at": 123456789, "access_type": "premium_stream", "google_file_id": "...", "size_bytes": 1000 } }
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"valid": false,

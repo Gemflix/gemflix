@@ -67,11 +67,11 @@ func provisionSuperAdmin(ctx context.Context, dbPool *pgxpool.Pool) {
 	}
 
 	// 3. Insertar el usuario
-	err = dbPool.QueryRow(ctx, 
+	err = dbPool.QueryRow(ctx,
 		"INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id",
 		"Super Admin (GitOps)", adminEmail, string(hashedPassword),
 	).Scan(&userID)
-	
+
 	if err != nil {
 		log.Fatalf("Error creando el Super Admin: %v", err)
 	}

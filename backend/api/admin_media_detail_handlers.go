@@ -124,8 +124,10 @@ func (s *Server) handleUpdateMovie(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var releaseDate pgtype.Date
-	if req.ReleaseDate != "" { releaseDate.Scan(req.ReleaseDate) }
-	
+	if req.ReleaseDate != "" {
+		releaseDate.Scan(req.ReleaseDate)
+	}
+
 	var pop, voteAvg pgtype.Numeric
 	pop.Scan(fmt.Sprintf("%f", req.Popularity))
 	voteAvg.Scan(fmt.Sprintf("%f", req.VoteAverage))
@@ -144,16 +146,16 @@ func (s *Server) handleUpdateMovie(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = s.db.UpdateMovieBasic(r.Context(), db.UpdateMovieBasicParams{
-		ID:             id,
-		OriginalName:   req.OriginalName,
-		Slug:           slug,
-		TitleLat:       pgtype.Text{String: req.TitleLat, Valid: req.TitleLat != ""},
-		TitleEsp:       pgtype.Text{String: req.TitleEsp, Valid: req.TitleEsp != ""},
-		TitleEng:       pgtype.Text{String: req.TitleEng, Valid: req.TitleEng != ""},
-		Overview:       pgtype.Text{String: req.Overview, Valid: req.Overview != ""},
-		TrailerKey:     pgtype.Text{String: req.TrailerKey, Valid: req.TrailerKey != ""},
-		ReleaseDate:    releaseDate,
-		Runtime:        pgtype.Int2{Int16: int16(req.Runtime), Valid: true},
+		ID:           id,
+		OriginalName: req.OriginalName,
+		Slug:         slug,
+		TitleLat:     pgtype.Text{String: req.TitleLat, Valid: req.TitleLat != ""},
+		TitleEsp:     pgtype.Text{String: req.TitleEsp, Valid: req.TitleEsp != ""},
+		TitleEng:     pgtype.Text{String: req.TitleEng, Valid: req.TitleEng != ""},
+		Overview:     pgtype.Text{String: req.Overview, Valid: req.Overview != ""},
+		TrailerKey:   pgtype.Text{String: req.TrailerKey, Valid: req.TrailerKey != ""},
+		ReleaseDate:  releaseDate,
+		Runtime:      pgtype.Int2{Int16: int16(req.Runtime), Valid: true},
 
 		VoteAverage:    voteAvg,
 		VoteCount:      int64(req.VoteCount),
@@ -207,8 +209,10 @@ func (s *Server) handleUpdateSerie(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var firstAirDate pgtype.Date
-	if req.FirstAirDate != "" { firstAirDate.Scan(req.FirstAirDate) }
-	
+	if req.FirstAirDate != "" {
+		firstAirDate.Scan(req.FirstAirDate)
+	}
+
 	var pop, voteAvg pgtype.Numeric
 	pop.Scan(fmt.Sprintf("%f", req.Popularity))
 	voteAvg.Scan(fmt.Sprintf("%f", req.VoteAverage))
@@ -238,13 +242,13 @@ func (s *Server) handleUpdateSerie(w http.ResponseWriter, r *http.Request) {
 		FirstAirDate:   firstAirDate,
 		EpisodeRunTime: pgtype.Int2{Int16: int16(req.EpisodeRunTime), Valid: true},
 
-		VoteAverage:    voteAvg,
-		VoteCount:      int64(req.VoteCount),
-		Active:         req.Status == "Publicado",
-		Premium:        req.Premium,
-		Premiere:       req.Premiere,
-		Upcoming:       req.Upcoming,
-		Certification:  pgtype.Text{String: req.Certification, Valid: req.Certification != ""},
+		VoteAverage:   voteAvg,
+		VoteCount:     int64(req.VoteCount),
+		Active:        req.Status == "Publicado",
+		Premium:       req.Premium,
+		Premiere:      req.Premiere,
+		Upcoming:      req.Upcoming,
+		Certification: pgtype.Text{String: req.Certification, Valid: req.Certification != ""},
 	})
 	if err != nil {
 		http.Error(w, "Error updating serie", http.StatusInternalServerError)
@@ -256,89 +260,88 @@ func (s *Server) handleUpdateSerie(w http.ResponseWriter, r *http.Request) {
 
 // handleSetMainMediaImage
 func (s *Server) handleSetMainMediaImage(w http.ResponseWriter, r *http.Request) {
-  var req struct {
-    ImageID int64  `json:"image_id"`
-    Type    string `json:"type"`
-    MovieID *int64 `json:"movie_id"`
-    SerieID *int64 `json:"serie_id"`
-  }
-  if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-    http.Error(w, "Invalid request", http.StatusBadRequest)
-    return
-  }
+	var req struct {
+		ImageID int64  `json:"image_id"`
+		Type    string `json:"type"`
+		MovieID *int64 `json:"movie_id"`
+		SerieID *int64 `json:"serie_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
 
-  params := db.UnsetMainMediaImagesParams{
-    Type: req.Type,
-  }
-  if req.MovieID != nil {
-    params.MovieID = pgtype.Int8{Int64: *req.MovieID, Valid: true}
-  }
-  if req.SerieID != nil {
-    params.SerieID = pgtype.Int8{Int64: *req.SerieID, Valid: true}
-  }
+	params := db.UnsetMainMediaImagesParams{
+		Type: req.Type,
+	}
+	if req.MovieID != nil {
+		params.MovieID = pgtype.Int8{Int64: *req.MovieID, Valid: true}
+	}
+	if req.SerieID != nil {
+		params.SerieID = pgtype.Int8{Int64: *req.SerieID, Valid: true}
+	}
 
-  err := s.db.UnsetMainMediaImages(r.Context(), params)
-  if err != nil {
-    http.Error(w, "Error unsetting images", http.StatusInternalServerError)
-    return
-  }
+	err := s.db.UnsetMainMediaImages(r.Context(), params)
+	if err != nil {
+		http.Error(w, "Error unsetting images", http.StatusInternalServerError)
+		return
+	}
 
-  err = s.db.SetMainMediaImage(r.Context(), req.ImageID)
-  if err != nil {
-    http.Error(w, "Error setting image", http.StatusInternalServerError)
-    return
-  }
+	err = s.db.SetMainMediaImage(r.Context(), req.ImageID)
+	if err != nil {
+		http.Error(w, "Error setting image", http.StatusInternalServerError)
+		return
+	}
 
-  w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 }
 
-
 func (s *Server) handleSearchMediaImages(w http.ResponseWriter, r *http.Request) {
-  tmdbIdStr := r.URL.Query().Get("tmdb_id")
-  mediaType := r.URL.Query().Get("type")
-  tmdbId, err := strconv.ParseInt(tmdbIdStr, 10, 64)
-  if err != nil {
-    http.Error(w, "ID invÃƒÂ¡lido", http.StatusBadRequest)
-    return
-  }
+	tmdbIdStr := r.URL.Query().Get("tmdb_id")
+	mediaType := r.URL.Query().Get("type")
+	tmdbId, err := strconv.ParseInt(tmdbIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, "ID invÃƒÂ¡lido", http.StatusBadRequest)
+		return
+	}
 
-  fp := NewFanartProvider()
-  images, err := fp.GetExtraImages(tmdbId, mediaType)
-  if err != nil {
-    http.Error(w, err.Error(), http.StatusInternalServerError)
-    return
-  }
+	fp := NewFanartProvider()
+	images, err := fp.GetExtraImages(tmdbId, mediaType)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-  w.Header().Set("Content-Type", "application/json")
-  json.NewEncoder(w).Encode(images)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(images)
 }
 
 func (s *Server) handleAddMediaImage(w http.ResponseWriter, r *http.Request) {
-  var req struct {
-    FilePath    string `json:"file_path"`
-    Type        string `json:"type"`
-    Source      string `json:"source"`
-    LanguageIso string `json:"language_iso"`
-    MovieID     *int64 `json:"movie_id"`
-    SerieID     *int64 `json:"serie_id"`
-  }
-  if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-    http.Error(w, "Invalid request", http.StatusBadRequest)
-    return
-  }
+	var req struct {
+		FilePath    string `json:"file_path"`
+		Type        string `json:"type"`
+		Source      string `json:"source"`
+		LanguageIso string `json:"language_iso"`
+		MovieID     *int64 `json:"movie_id"`
+		SerieID     *int64 `json:"serie_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
 
-  params := db.InsertMediaImageParams{
-    FilePath: req.FilePath,
-    Type: req.Type,
-    Source: req.Source,
-    LanguageIso: pgtype.Text{String: req.LanguageIso, Valid: req.LanguageIso != ""},
-    IsMain: false,
-  }
-  if req.MovieID != nil {
-    params.MovieID = pgtype.Int8{Int64: *req.MovieID, Valid: true}
-  } else if req.SerieID != nil {
-    params.SerieID = pgtype.Int8{Int64: *req.SerieID, Valid: true}
-  }
+	params := db.InsertMediaImageParams{
+		FilePath:    req.FilePath,
+		Type:        req.Type,
+		Source:      req.Source,
+		LanguageIso: pgtype.Text{String: req.LanguageIso, Valid: req.LanguageIso != ""},
+		IsMain:      false,
+	}
+	if req.MovieID != nil {
+		params.MovieID = pgtype.Int8{Int64: *req.MovieID, Valid: true}
+	} else if req.SerieID != nil {
+		params.SerieID = pgtype.Int8{Int64: *req.SerieID, Valid: true}
+	}
 
 	_, err := s.db.InsertMediaImage(r.Context(), params)
 	if err != nil && err != pgx.ErrNoRows {
@@ -350,22 +353,21 @@ func (s *Server) handleAddMediaImage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleDeleteMediaImage(w http.ResponseWriter, r *http.Request) {
-  idStr := chi.URLParam(r, "imageId")
-  id, err := strconv.ParseInt(idStr, 10, 64)
-  if err != nil {
-    http.Error(w, "ID invÃƒÂ¡lido", http.StatusBadRequest)
-    return
-  }
+	idStr := chi.URLParam(r, "imageId")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		http.Error(w, "ID invÃƒÂ¡lido", http.StatusBadRequest)
+		return
+	}
 
-  err = s.db.DeleteMediaImage(r.Context(), id)
-  if err != nil {
-    http.Error(w, "Error eliminando imagen", http.StatusInternalServerError)
-    return
-  }
+	err = s.db.DeleteMediaImage(r.Context(), id)
+	if err != nil {
+		http.Error(w, "Error eliminando imagen", http.StatusInternalServerError)
+		return
+	}
 
-  w.WriteHeader(http.StatusNoContent)
+	w.WriteHeader(http.StatusNoContent)
 }
-
 
 func (s *Server) handleDeleteRelation(w http.ResponseWriter, r *http.Request) {
 	mediaType := chi.URLParam(r, "mediaType")
@@ -419,29 +421,44 @@ func (s *Server) handleDeleteRelation(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleSearchRelation(w http.ResponseWriter, r *http.Request) {
 	relType := chi.URLParam(r, "type")
 	query := r.URL.Query().Get("q")
-	
+
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	switch relType {
 	case "genres":
 		res, err := s.db.SearchGenres(r.Context(), pgtype.Text{String: query, Valid: query != ""})
-		if err != nil { json.NewEncoder(w).Encode([]interface{}{}) ; return }
+		if err != nil {
+			json.NewEncoder(w).Encode([]interface{}{})
+			return
+		}
 		json.NewEncoder(w).Encode(res)
 	case "networks":
 		res, err := s.db.SearchNetworks(r.Context(), pgtype.Text{String: query, Valid: query != ""})
-		if err != nil { json.NewEncoder(w).Encode([]interface{}{}) ; return }
+		if err != nil {
+			json.NewEncoder(w).Encode([]interface{}{})
+			return
+		}
 		json.NewEncoder(w).Encode(res)
 	case "casts":
 		res, err := s.db.SearchCasts(r.Context(), pgtype.Text{String: query, Valid: query != ""})
-		if err != nil { json.NewEncoder(w).Encode([]interface{}{}) ; return }
+		if err != nil {
+			json.NewEncoder(w).Encode([]interface{}{})
+			return
+		}
 		json.NewEncoder(w).Encode(res)
 	case "collections":
 		res, err := s.db.SearchCollections(r.Context(), pgtype.Text{String: query, Valid: query != ""})
-		if err != nil { json.NewEncoder(w).Encode([]interface{}{}) ; return }
+		if err != nil {
+			json.NewEncoder(w).Encode([]interface{}{})
+			return
+		}
 		json.NewEncoder(w).Encode(res)
 	case "countries":
 		res, err := s.db.SearchCountries(r.Context(), pgtype.Text{String: query, Valid: query != ""})
-		if err != nil { json.NewEncoder(w).Encode([]interface{}{}) ; return }
+		if err != nil {
+			json.NewEncoder(w).Encode([]interface{}{})
+			return
+		}
 		json.NewEncoder(w).Encode(res)
 	default:
 		http.Error(w, "Invalid type", http.StatusBadRequest)
@@ -458,7 +475,7 @@ func (s *Server) handleAddRelation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	relType := chi.URLParam(r, "relationType")
-	
+
 	var req struct {
 		RelationID int64 `json:"relation_id"`
 	}
@@ -500,4 +517,3 @@ func (s *Server) handleAddRelation(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
-

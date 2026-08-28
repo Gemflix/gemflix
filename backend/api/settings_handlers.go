@@ -7,7 +7,7 @@ import (
 
 func (s *Server) handleGetSettings(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	
+
 	settingsList, err := s.db.ListAppSettings(ctx)
 	if err != nil {
 		http.Error(w, "Error fetching settings", http.StatusInternalServerError)

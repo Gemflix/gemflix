@@ -33,7 +33,7 @@ var SystemPermissions = []PermissionDef{
 
 	// GemDrive
 	{Name: "manage_files", Group: "GemDrive", Description: "Gestionar archivos de usuarios"},
-	
+
 	// Jellyfin
 	{Name: "manage_jellyfin", Group: "Jellyfin", Description: "Gestionar nodos y sincronización de Jellyfin"},
 

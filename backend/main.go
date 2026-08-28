@@ -11,7 +11,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
-	
+
 	"proyecto-go/api"
 	"proyecto-go/db/sqlc"
 	"proyecto-go/utils"
@@ -89,7 +89,7 @@ func main() {
 	port := ":8080"
 	fmt.Printf("🚀 Servidor corriendo en el puerto %s...\n", port)
 	fmt.Printf("👉 Visita el Panel Admin en: http://localhost%s/admin/\n", port)
-	
+
 	srv := &http.Server{
 		Addr:         port,
 		Handler:      server, // Inyectamos nuestro server.go

@@ -113,7 +113,7 @@ func (server *Server) HandleGetExploreCasts(w http.ResponseWriter, r *http.Reque
 
 func (server *Server) HandleGetExploreGenres(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	
+
 	items, err := server.db.ListExploreGenres(ctx)
 	if err != nil {
 		http.Error(w, "Failed to fetch genres", http.StatusInternalServerError)

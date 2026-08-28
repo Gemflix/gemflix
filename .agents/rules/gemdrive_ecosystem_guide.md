@@ -28,6 +28,10 @@ This rule defines the architecture and mandatory behavior for implementing the "
     - `FULL`: Authoritative complete rebuild.
     - `DELTA`: Uses Google Drive Changes API.
     - `APPEND`: Adds/updates without deactivating missing items.
+- **Sync Worker Parsing Logic (Plex/Jellyfin Standard):**
+  - The Sync Worker MUST NOT guess movies by raw filename. It must strictly parse the Plex/Jellyfin naming convention from the folder or filename.
+  - Required format: `{tmdb-ID}` (e.g., `Deadpool & Wolverine (2024) {tmdb-533535} [LAT-ENG].mp4`).
+  - If multiple files share the same `{tmdb-ID}` (e.g. 1080p and 4K versions, or different dubs), they must automatically be linked to the same movie in the `catalog.movies` table without manual intervention.
 
 ## 3. Drive Replica Targets (GemReplicas)
 - **Purpose:** Controlled Shared Drives where the system creates temporary copies (Replicas) for streaming and downloading. It is NOT a source.

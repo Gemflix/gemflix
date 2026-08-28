@@ -2,9 +2,9 @@ package api
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"strings"
-	"log"
 
 	"proyecto-go/db/sqlc"
 	"proyecto-go/utils"
@@ -52,7 +52,7 @@ func (s *Server) AuthMiddlewareChi(next http.Handler) http.Handler {
 		ctx = context.WithValue(ctx, userClaimsKey, claims)
 		ctx = context.WithValue(ctx, userIDKey, claims.UserID)
 
-		// Opcional: Podríamos seguir inyectando el DeviceID si el JWT lo incluyera, 
+		// Opcional: Podríamos seguir inyectando el DeviceID si el JWT lo incluyera,
 		// pero en esta versión stateless usaremos los datos esenciales.
 
 		next.ServeHTTP(w, r.WithContext(ctx))
@@ -82,7 +82,7 @@ func (s *Server) RequirePermissionChi(permission string) func(http.Handler) http
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			userID := getUserID(r.Context())
-			
+
 			if userID == 0 {
 				http.Error(w, `{"error": "No autenticado"}`, http.StatusUnauthorized)
 				return

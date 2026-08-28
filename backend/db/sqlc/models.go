@@ -162,6 +162,21 @@ type DriveItem struct {
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
+type DriveReplica struct {
+	ID                int64              `json:"id"`
+	ServiceAccountID  pgtype.Int8        `json:"service_account_id"`
+	Name              string             `json:"name"`
+	SharedDriveID     string             `json:"shared_drive_id"`
+	StreamingFolderID pgtype.Text        `json:"streaming_folder_id"`
+	GemdriveFolderID  pgtype.Text        `json:"gemdrive_folder_id"`
+	RecoveryFolderID  pgtype.Text        `json:"recovery_folder_id"`
+	SpaceLimitGib     pgtype.Int4        `json:"space_limit_gib"`
+	Priority          pgtype.Int4        `json:"priority"`
+	HealthStatus      pgtype.Text        `json:"health_status"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+}
+
 type DriveServiceAccount struct {
 	ID              int64              `json:"id"`
 	Name            string             `json:"name"`

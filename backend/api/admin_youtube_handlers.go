@@ -23,7 +23,7 @@ func (s *Server) handleYouTubeSearch(w http.ResponseWriter, r *http.Request) {
 
 	// Make request to YouTube API
 	searchURL := fmt.Sprintf("https://www.googleapis.com/youtube/v3/search?part=snippet&q=%s&type=video&key=%s&maxResults=5", url.QueryEscape(query), apiKey)
-	
+
 	resp, err := http.Get(searchURL)
 	if err != nil {
 		http.Error(w, "Error contactando a YouTube", http.StatusInternalServerError)

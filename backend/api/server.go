@@ -41,14 +41,14 @@ func (s *Server) setupMiddlewares() {
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
-		MaxAge:           300, 
+		MaxAge:           300,
 	}))
 }
 
 func (s *Server) routes() {
 	// Agrupamos las rutas de la API (ahora en la raíz del backend ya que corre en api.gemflix.org)
 	s.router.Group(func(r chi.Router) {
-		
+
 		// Auth
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/login", s.handleLogin)
@@ -75,7 +75,7 @@ func (s *Server) routes() {
 			r.Get("/explore/countries", s.HandleGetExploreCountries)
 			r.Get("/explore/casts", s.HandleGetExploreCasts)
 			r.Get("/explore/genres", s.HandleGetExploreGenres)
-			
+
 			// Protegidos
 			r.Group(func(r chi.Router) {
 				r.Use(s.AuthMiddlewareChi)
@@ -87,7 +87,7 @@ func (s *Server) routes() {
 
 				r.Get("/billing/subscriptions/me", s.HandleGetActiveSubscriptions)
 			})
-			
+
 			// Públicos o protegidos dependiendo de si quieres que vean planes sin login
 			r.Get("/billing/plans", s.HandleListActivePlans)
 		})
@@ -108,7 +108,7 @@ func (s *Server) routes() {
 			r.With(s.RequirePermissionChi("manage_movies")).Put("/movies/{id}", s.handleUpdateMovie)
 			r.With(s.RequirePermissionChi("manage_movies")).Patch("/movies/{id}/toggle", s.handleToggleMediaAttr)
 			r.With(s.RequirePermissionChi("manage_movies")).Delete("/movies/{id}", s.handleDeleteMovie)
-			
+
 			r.With(s.RequirePermissionChi("manage_series")).Get("/series", s.handleGetAdminSeriesList)
 			r.With(s.RequirePermissionChi("manage_series")).Post("/series", s.handleCreateSerie)
 			r.With(s.RequirePermissionChi("manage_series")).Get("/series/{id}", s.handleGetSerieDetails)
@@ -122,15 +122,15 @@ func (s *Server) routes() {
 			r.With(s.RequirePermissionChi("manage_movies")).Get("/movies/{movieId}/media-sources", s.handleGetMovieMediaSources)
 			r.With(s.RequirePermissionChi("manage_series")).Post("/media-sources", s.handleCreateMediaSource)
 			r.With(s.RequirePermissionChi("manage_series")).Delete("/media-sources/{id}", s.handleDeleteMediaSource)
-			
+
 			r.With(s.RequirePermissionChi("manage_series")).Get("/media-sources/{id}/audios", s.handleGetMediaAudioTracks)
 			r.With(s.RequirePermissionChi("manage_series")).Post("/media-sources/{id}/audios", s.handleCreateMediaAudioTrack)
 			r.With(s.RequirePermissionChi("manage_series")).Delete("/audios/{id}", s.handleDeleteMediaAudioTrack)
-			
+
 			r.With(s.RequirePermissionChi("manage_series")).Get("/media-sources/{id}/subtitles", s.handleGetMediaSubtitleTracks)
 			r.With(s.RequirePermissionChi("manage_series")).Post("/media-sources/{id}/subtitles", s.handleCreateMediaSubtitleTrack)
 			r.With(s.RequirePermissionChi("manage_series")).Delete("/subtitles/{id}", s.handleDeleteMediaSubtitleTrack)
-			
+
 			r.With(s.RequirePermissionChi("manage_devices")).Get("/devices", s.handleGetDevices)
 			r.With(s.RequirePermissionChi("manage_settings")).Post("/settings", s.handleUpdateSettings)
 			r.With(s.RequirePermissionChi("manage_settings")).Post("/settings/logo", s.handleUploadLogo)
@@ -141,15 +141,15 @@ func (s *Server) routes() {
 			r.With(s.RequirePermissionChi("manage_movies")).Get("/media-images/search", s.handleSearchMediaImages)
 			r.With(s.RequirePermissionChi("manage_movies")).Post("/media-images", s.handleAddMediaImage)
 			r.With(s.RequirePermissionChi("manage_movies")).Delete("/media-images/{imageId}", s.handleDeleteMediaImage)
-			
+
 			// YouTube
 			r.With(s.RequirePermissionChi("manage_movies")).Get("/youtube/search", s.handleYouTubeSearch)
-			
+
 			// Relations (Casts, Genres, Networks)
 			r.With(s.RequirePermissionChi("manage_movies")).Get("/search/{type}", s.handleSearchRelation)
 			r.With(s.RequirePermissionChi("manage_movies")).Post("/{mediaType}/{id}/{relationType}", s.handleAddRelation)
 			r.With(s.RequirePermissionChi("manage_movies")).Delete("/{mediaType}/{mediaId}/{relationType}/{relationId}", s.handleDeleteRelation)
-			
+
 			// Relation Lists (CRUD)
 			r.With(s.RequirePermissionChi("manage_movies")).Get("/collections", s.handleGetCollectionsList)
 			r.With(s.RequirePermissionChi("manage_movies")).Post("/collections", s.handleCreateCollection)
@@ -181,6 +181,8 @@ func (s *Server) routes() {
 			r.With(s.RequirePermissionChi("manage_settings")).Post("/drive/accounts", s.handleCreateDriveAccount)
 			r.With(s.RequirePermissionChi("manage_settings")).Get("/drive/sources", s.handleGetDriveSources)
 			r.With(s.RequirePermissionChi("manage_settings")).Post("/drive/sources", s.handleCreateDriveSource)
+			r.With(s.RequirePermissionChi("manage_settings")).Get("/drive/replicas", s.handleGetDriveReplicas)
+			r.With(s.RequirePermissionChi("manage_settings")).Post("/drive/replicas", s.handleCreateDriveReplica)
 			r.With(s.RequirePermissionChi("manage_settings")).Get("/drive/monitor", s.handleGetDriveMonitorStats)
 		})
 	})

@@ -32,7 +32,7 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	
+
 	// 1. Validar Usuario
 	user, err := s.db.GetUserByEmail(ctx, req.Email)
 	if err != nil {
@@ -59,7 +59,7 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	parsedUA := user_agent.New(ua)
 	osName := parsedUA.OS()
 	browserName, browserVersion := parsedUA.Browser()
-	
+
 	clientIP := r.Header.Get("X-Forwarded-For")
 	if clientIP == "" {
 		clientIP = r.RemoteAddr
@@ -87,15 +87,15 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	device, err := s.db.RegisterDevice(ctx, db.RegisterDeviceParams{
-		UserID:         user.ID,
-		Platform:       req.Platform,
-		Fingerprint:    req.Fingerprint,
-		DeviceBrand:    pgtype.Text{String: browserName, Valid: true},
-		DeviceModel:    pgtype.Text{String: browserVersion, Valid: true},
-		OsVersion:      pgtype.Text{String: osName, Valid: true},
-		LastIp:         clientIPAddr,
-		SessionID:      pgtype.Text{String: generateRandomToken(32), Valid: true},
-		LastUserAgent:  pgtype.Text{String: ua, Valid: true},
+		UserID:        user.ID,
+		Platform:      req.Platform,
+		Fingerprint:   req.Fingerprint,
+		DeviceBrand:   pgtype.Text{String: browserName, Valid: true},
+		DeviceModel:   pgtype.Text{String: browserVersion, Valid: true},
+		OsVersion:     pgtype.Text{String: osName, Valid: true},
+		LastIp:        clientIPAddr,
+		SessionID:     pgtype.Text{String: generateRandomToken(32), Valid: true},
+		LastUserAgent: pgtype.Text{String: ua, Valid: true},
 	})
 	if err != nil {
 		fmt.Printf("ERROR RegisterDevice: %v\n", err)
@@ -125,7 +125,7 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Printf("Login Success: UserID=%d, Email=%s, Roles=%v\n", user.ID, user.Email, roleNames)
-	
+
 	// 7. Respuesta Exitosa JSON (Sin setear cookies, el BFF lo hará)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -147,7 +147,7 @@ func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		RefreshToken string `json:"refresh_token"`
 	}
-	
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err == nil {
 		refreshToken = req.RefreshToken
 	}
@@ -163,7 +163,7 @@ func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleAuthMe(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	
+
 	// El token debe venir validado por el middleware y los claims inyectados en el contexto
 	claims, ok := ctx.Value(userClaimsKey).(*utils.CustomClaims)
 	if !ok {

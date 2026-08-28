@@ -3,33 +3,33 @@ package api
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 	db "proyecto-go/db/sqlc"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type MediaSourcePayload struct {
-	EpisodeID     *int64  `json:"episode_id"`
-	MovieID       *int64  `json:"movie_id"`
-	Label         string  `json:"label"`
-	Type          string  `json:"type"`
-	Quality       string  `json:"quality"`
-	Link          string  `json:"link"`
-	LinkHash      string  `json:"link_hash"`
-	SizeBytes     *int64  `json:"size_bytes"`
-	DurationSec   *int32  `json:"duration_sec"`
-	VideoCodec    string  `json:"video_codec"`
-	AudioChannels string  `json:"audio_channels"`
-	DynamicRange  string  `json:"dynamic_range"`
-	BitDepth      *int16  `json:"bit_depth"`
-	RecapStart    *int32  `json:"recap_start"`
-	RecapEnd      *int32  `json:"recap_end"`
-	OpeningStart  *int32  `json:"opening_start"`
-	OpeningEnd    *int32  `json:"opening_end"`
-	EndingStart   *int32  `json:"ending_start"`
-	EndingEnd     *int32  `json:"ending_end"`
+	EpisodeID     *int64 `json:"episode_id"`
+	MovieID       *int64 `json:"movie_id"`
+	Label         string `json:"label"`
+	Type          string `json:"type"`
+	Quality       string `json:"quality"`
+	Link          string `json:"link"`
+	LinkHash      string `json:"link_hash"`
+	SizeBytes     *int64 `json:"size_bytes"`
+	DurationSec   *int32 `json:"duration_sec"`
+	VideoCodec    string `json:"video_codec"`
+	AudioChannels string `json:"audio_channels"`
+	DynamicRange  string `json:"dynamic_range"`
+	BitDepth      *int16 `json:"bit_depth"`
+	RecapStart    *int32 `json:"recap_start"`
+	RecapEnd      *int32 `json:"recap_end"`
+	OpeningStart  *int32 `json:"opening_start"`
+	OpeningEnd    *int32 `json:"opening_end"`
+	EndingStart   *int32 `json:"ending_start"`
+	EndingEnd     *int32 `json:"ending_end"`
 }
 
 type AudioTrackPayload struct {
@@ -111,32 +111,64 @@ func (s *Server) handleCreateMediaSource(w http.ResponseWriter, r *http.Request)
 	}
 
 	var label, quality, linkHash, videoCodec, audioChannels, dynamicRange pgtype.Text
-	if req.Label != "" { label = pgtype.Text{String: req.Label, Valid: true} }
-	if req.Quality != "" { quality = pgtype.Text{String: req.Quality, Valid: true} }
-	if req.LinkHash != "" { linkHash = pgtype.Text{String: req.LinkHash, Valid: true} }
-	if req.VideoCodec != "" { videoCodec = pgtype.Text{String: req.VideoCodec, Valid: true} }
-	if req.AudioChannels != "" { audioChannels = pgtype.Text{String: req.AudioChannels, Valid: true} }
-	if req.DynamicRange != "" { dynamicRange = pgtype.Text{String: req.DynamicRange, Valid: true} }
+	if req.Label != "" {
+		label = pgtype.Text{String: req.Label, Valid: true}
+	}
+	if req.Quality != "" {
+		quality = pgtype.Text{String: req.Quality, Valid: true}
+	}
+	if req.LinkHash != "" {
+		linkHash = pgtype.Text{String: req.LinkHash, Valid: true}
+	}
+	if req.VideoCodec != "" {
+		videoCodec = pgtype.Text{String: req.VideoCodec, Valid: true}
+	}
+	if req.AudioChannels != "" {
+		audioChannels = pgtype.Text{String: req.AudioChannels, Valid: true}
+	}
+	if req.DynamicRange != "" {
+		dynamicRange = pgtype.Text{String: req.DynamicRange, Valid: true}
+	}
 
 	var sizeBytes pgtype.Int8
-	if req.SizeBytes != nil { sizeBytes = pgtype.Int8{Int64: *req.SizeBytes, Valid: true} }
+	if req.SizeBytes != nil {
+		sizeBytes = pgtype.Int8{Int64: *req.SizeBytes, Valid: true}
+	}
 
 	var durationSec pgtype.Int4
-	if req.DurationSec != nil { durationSec = pgtype.Int4{Int32: *req.DurationSec, Valid: true} }
+	if req.DurationSec != nil {
+		durationSec = pgtype.Int4{Int32: *req.DurationSec, Valid: true}
+	}
 
 	var bitDepth pgtype.Int2
-	if req.BitDepth != nil { bitDepth = pgtype.Int2{Int16: *req.BitDepth, Valid: true} }
+	if req.BitDepth != nil {
+		bitDepth = pgtype.Int2{Int16: *req.BitDepth, Valid: true}
+	}
 
 	var recapStart, recapEnd, openingStart, openingEnd, endingStart, endingEnd int32
-	if req.RecapStart != nil { recapStart = *req.RecapStart }
-	if req.RecapEnd != nil { recapEnd = *req.RecapEnd }
-	if req.OpeningStart != nil { openingStart = *req.OpeningStart }
-	if req.OpeningEnd != nil { openingEnd = *req.OpeningEnd }
-	if req.EndingStart != nil { endingStart = *req.EndingStart }
-	if req.EndingEnd != nil { endingEnd = *req.EndingEnd }
+	if req.RecapStart != nil {
+		recapStart = *req.RecapStart
+	}
+	if req.RecapEnd != nil {
+		recapEnd = *req.RecapEnd
+	}
+	if req.OpeningStart != nil {
+		openingStart = *req.OpeningStart
+	}
+	if req.OpeningEnd != nil {
+		openingEnd = *req.OpeningEnd
+	}
+	if req.EndingStart != nil {
+		endingStart = *req.EndingStart
+	}
+	if req.EndingEnd != nil {
+		endingEnd = *req.EndingEnd
+	}
 
 	mediaType := "directo"
-	if req.Type != "" { mediaType = req.Type }
+	if req.Type != "" {
+		mediaType = req.Type
+	}
 
 	source, err := s.db.CreateMediaSource(r.Context(), db.CreateMediaSourceParams{
 		EpisodeID:     episodeID,
@@ -189,10 +221,16 @@ func (s *Server) handleDeleteMediaSource(w http.ResponseWriter, r *http.Request)
 func (s *Server) handleGetMediaAudioTracks(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
-	if err != nil { http.Error(w, "Invalid ID", http.StatusBadRequest); return }
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
 
 	tracks, err := s.db.GetMediaAudioTracks(r.Context(), id)
-	if err != nil { http.Error(w, "Error fetching audios", http.StatusInternalServerError); return }
+	if err != nil {
+		http.Error(w, "Error fetching audios", http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(tracks)
 }
@@ -200,10 +238,16 @@ func (s *Server) handleGetMediaAudioTracks(w http.ResponseWriter, r *http.Reques
 func (s *Server) handleGetMediaSubtitleTracks(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
-	if err != nil { http.Error(w, "Invalid ID", http.StatusBadRequest); return }
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
 
 	tracks, err := s.db.GetMediaSubtitleTracks(r.Context(), id)
-	if err != nil { http.Error(w, "Error fetching subtitles", http.StatusInternalServerError); return }
+	if err != nil {
+		http.Error(w, "Error fetching subtitles", http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(tracks)
 }
@@ -211,7 +255,10 @@ func (s *Server) handleGetMediaSubtitleTracks(w http.ResponseWriter, r *http.Req
 func (s *Server) handleCreateMediaAudioTrack(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
-	if err != nil { http.Error(w, "Invalid ID", http.StatusBadRequest); return }
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
 
 	var req AudioTrackPayload
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -220,16 +267,28 @@ func (s *Server) handleCreateMediaAudioTrack(w http.ResponseWriter, r *http.Requ
 	}
 
 	var lang, codec, channelLayout, title pgtype.Text
-	if req.Lang != "" { lang = pgtype.Text{String: req.Lang, Valid: true} }
-	if req.Codec != "" { codec = pgtype.Text{String: req.Codec, Valid: true} }
-	if req.ChannelLayout != "" { channelLayout = pgtype.Text{String: req.ChannelLayout, Valid: true} }
-	if req.Title != "" { title = pgtype.Text{String: req.Title, Valid: true} }
+	if req.Lang != "" {
+		lang = pgtype.Text{String: req.Lang, Valid: true}
+	}
+	if req.Codec != "" {
+		codec = pgtype.Text{String: req.Codec, Valid: true}
+	}
+	if req.ChannelLayout != "" {
+		channelLayout = pgtype.Text{String: req.ChannelLayout, Valid: true}
+	}
+	if req.Title != "" {
+		title = pgtype.Text{String: req.Title, Valid: true}
+	}
 
 	var bitrate pgtype.Int2
-	if req.BitrateKbps != nil { bitrate = pgtype.Int2{Int16: *req.BitrateKbps, Valid: true} }
-	
+	if req.BitrateKbps != nil {
+		bitrate = pgtype.Int2{Int16: *req.BitrateKbps, Valid: true}
+	}
+
 	var sampleRate pgtype.Int4
-	if req.SampleRateHz != nil { sampleRate = pgtype.Int4{Int32: *req.SampleRateHz, Valid: true} }
+	if req.SampleRateHz != nil {
+		sampleRate = pgtype.Int4{Int32: *req.SampleRateHz, Valid: true}
+	}
 
 	track, err := s.db.CreateMediaAudioTrack(r.Context(), db.CreateMediaAudioTrackParams{
 		MediaSourceID: id,
@@ -242,7 +301,10 @@ func (s *Server) handleCreateMediaAudioTrack(w http.ResponseWriter, r *http.Requ
 		IsDefault:     req.IsDefault,
 		Title:         title,
 	})
-	if err != nil { http.Error(w, err.Error(), http.StatusInternalServerError); return }
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(track)
 }
@@ -250,7 +312,10 @@ func (s *Server) handleCreateMediaAudioTrack(w http.ResponseWriter, r *http.Requ
 func (s *Server) handleCreateMediaSubtitleTrack(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
-	if err != nil { http.Error(w, "Invalid ID", http.StatusBadRequest); return }
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
 
 	var req SubtitleTrackPayload
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -259,11 +324,21 @@ func (s *Server) handleCreateMediaSubtitleTrack(w http.ResponseWriter, r *http.R
 	}
 
 	var lang, typ, link, linkHash, title pgtype.Text
-	if req.Lang != "" { lang = pgtype.Text{String: req.Lang, Valid: true} }
-	if req.Type != "" { typ = pgtype.Text{String: req.Type, Valid: true} }
-	if req.Link != "" { link = pgtype.Text{String: req.Link, Valid: true} }
-	if req.LinkHash != "" { linkHash = pgtype.Text{String: req.LinkHash, Valid: true} }
-	if req.Title != "" { title = pgtype.Text{String: req.Title, Valid: true} }
+	if req.Lang != "" {
+		lang = pgtype.Text{String: req.Lang, Valid: true}
+	}
+	if req.Type != "" {
+		typ = pgtype.Text{String: req.Type, Valid: true}
+	}
+	if req.Link != "" {
+		link = pgtype.Text{String: req.Link, Valid: true}
+	}
+	if req.LinkHash != "" {
+		linkHash = pgtype.Text{String: req.LinkHash, Valid: true}
+	}
+	if req.Title != "" {
+		title = pgtype.Text{String: req.Title, Valid: true}
+	}
 
 	track, err := s.db.CreateMediaSubtitleTrack(r.Context(), db.CreateMediaSubtitleTrackParams{
 		MediaSourceID: id,
@@ -277,7 +352,10 @@ func (s *Server) handleCreateMediaSubtitleTrack(w http.ResponseWriter, r *http.R
 		IsDefault:     req.IsDefault,
 		Title:         title,
 	})
-	if err != nil { http.Error(w, err.Error(), http.StatusInternalServerError); return }
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(track)
 }
@@ -285,19 +363,31 @@ func (s *Server) handleCreateMediaSubtitleTrack(w http.ResponseWriter, r *http.R
 func (s *Server) handleDeleteMediaAudioTrack(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
-	if err != nil { http.Error(w, "Invalid ID", http.StatusBadRequest); return }
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
 
 	err = s.db.DeleteMediaAudioTrack(r.Context(), id)
-	if err != nil { http.Error(w, "Error deleting", http.StatusInternalServerError); return }
+	if err != nil {
+		http.Error(w, "Error deleting", http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 }
 
 func (s *Server) handleDeleteMediaSubtitleTrack(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
-	if err != nil { http.Error(w, "Invalid ID", http.StatusBadRequest); return }
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
 
 	err = s.db.DeleteMediaSubtitleTrack(r.Context(), id)
-	if err != nil { http.Error(w, "Error deleting", http.StatusInternalServerError); return }
+	if err != nil {
+		http.Error(w, "Error deleting", http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 }

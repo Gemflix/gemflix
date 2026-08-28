@@ -43,6 +43,7 @@ type Querier interface {
 	CreatePlan(ctx context.Context, arg CreatePlanParams) (BillingPlan, error)
 	CreatePlanPrice(ctx context.Context, arg CreatePlanPriceParams) (BillingPlanPrice, error)
 	CreateProfile(ctx context.Context, arg CreateProfileParams) (Profile, error)
+	CreateReplica(ctx context.Context, arg CreateReplicaParams) (DriveReplica, error)
 	CreateRole(ctx context.Context, arg CreateRoleParams) (Role, error)
 	CreateSerie(ctx context.Context, arg CreateSerieParams) (Series, error)
 	CreateServiceAccount(ctx context.Context, arg CreateServiceAccountParams) (DriveServiceAccount, error)
@@ -62,6 +63,7 @@ type Querier interface {
 	DeleteMovieGenre(ctx context.Context, arg DeleteMovieGenreParams) error
 	DeleteMovieNetwork(ctx context.Context, arg DeleteMovieNetworkParams) error
 	DeleteNetwork(ctx context.Context, id int64) error
+	DeleteReplica(ctx context.Context, id int64) error
 	DeleteSerie(ctx context.Context, id int64) error
 	DeleteSerieCast(ctx context.Context, arg DeleteSerieCastParams) error
 	DeleteSerieGenre(ctx context.Context, arg DeleteSerieGenreParams) error
@@ -130,6 +132,7 @@ type Querier interface {
 	ListExploreCountries(ctx context.Context, arg ListExploreCountriesParams) ([]ListExploreCountriesRow, error)
 	ListExploreGenres(ctx context.Context) ([]ListExploreGenresRow, error)
 	ListExploreNetworks(ctx context.Context, arg ListExploreNetworksParams) ([]ListExploreNetworksRow, error)
+	ListReplicas(ctx context.Context) ([]ListReplicasRow, error)
 	ListRoles(ctx context.Context) ([]Role, error)
 	ListTrendingMovies(ctx context.Context, arg ListTrendingMoviesParams) ([]Movie, error)
 	ListUserMediaReports(ctx context.Context, arg ListUserMediaReportsParams) ([]MediaReport, error)
@@ -162,6 +165,7 @@ type Querier interface {
 	UpdateGenre(ctx context.Context, arg UpdateGenreParams) (Genre, error)
 	UpdateMovieBasic(ctx context.Context, arg UpdateMovieBasicParams) error
 	UpdateNetwork(ctx context.Context, arg UpdateNetworkParams) (Network, error)
+	UpdateReplicaStatus(ctx context.Context, arg UpdateReplicaStatusParams) error
 	UpdateSerieBasic(ctx context.Context, arg UpdateSerieBasicParams) error
 	UpdateUserLogin(ctx context.Context, id int64) error
 	// ==========================================

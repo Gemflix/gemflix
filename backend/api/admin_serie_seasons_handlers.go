@@ -3,9 +3,9 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	db "proyecto-go/db/sqlc"
 	"strconv"
 	"time"
-	db "proyecto-go/db/sqlc"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -179,9 +179,15 @@ func (s *Server) handleUpdateEpisode(w http.ResponseWriter, r *http.Request) {
 
 	var name string
 	var overview, stillPath pgtype.Text
-	if val, ok := req["name"].(string); ok { name = val }
-	if val, ok := req["overview"].(string); ok { overview = pgtype.Text{String: val, Valid: true} }
-	if val, ok := req["still_path"].(string); ok { stillPath = pgtype.Text{String: val, Valid: true} }
+	if val, ok := req["name"].(string); ok {
+		name = val
+	}
+	if val, ok := req["overview"].(string); ok {
+		overview = pgtype.Text{String: val, Valid: true}
+	}
+	if val, ok := req["still_path"].(string); ok {
+		stillPath = pgtype.Text{String: val, Valid: true}
+	}
 
 	var airDate pgtype.Date
 	if val, ok := req["air_date"].(string); ok && val != "" {

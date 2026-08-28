@@ -4,14 +4,14 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"proyecto-go/db/sqlc"
 	"github.com/jackc/pgx/v5/pgtype"
+	"proyecto-go/db/sqlc"
 )
 
 // handleGetStats obtiene las estadísticas generales (conteo)
 func (s *Server) handleGetStats(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	stats, err := s.db.GetAdminStats(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -29,7 +29,7 @@ func (s *Server) handleGetStats(w http.ResponseWriter, r *http.Request) {
 // handleGetUsers obtiene los usuarios reales de la base de datos
 func (s *Server) handleGetUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	users, err := s.db.GetAdminUsersList(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -58,7 +58,7 @@ func (s *Server) handleGetUsers(w http.ResponseWriter, r *http.Request) {
 // handleGetStaff obtiene los usuarios con rol de staff
 func (s *Server) handleGetStaff(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	staff, err := s.db.GetAdminStaffList(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -85,7 +85,7 @@ func (s *Server) handleGetStaff(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleGetRoles(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	roles, err := s.db.GetAdminRoles(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -96,7 +96,7 @@ func (s *Server) handleGetRoles(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleGetPermissions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	permissions, err := s.db.GetAllPermissions(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -149,7 +149,7 @@ func (s *Server) handleCreateStaff(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Simplificado para el ejemplo (usar bcrypt real en prod)
-	passwordHash := "$2a$10$wI8aP5fI.O.p1y.p8T0Q5uXl.L/4G.t9Q.h.p3h/gP.n.u.p.x/eG" 
+	passwordHash := "$2a$10$wI8aP5fI.O.p1y.p8T0Q5uXl.L/4G.t9Q.h.p3h/gP.n.u.p.x/eG"
 
 	staff, err := s.db.CreateAdminStaff(r.Context(), db.CreateAdminStaffParams{
 		Name:         req.Name,
@@ -177,7 +177,7 @@ func (s *Server) handleCreateStaff(w http.ResponseWriter, r *http.Request) {
 // handleGetMovies obtiene las películas reales del catálogo
 func (s *Server) handleGetMovies(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	movies, err := s.db.GetAdminMoviesList(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -190,7 +190,7 @@ func (s *Server) handleGetMovies(w http.ResponseWriter, r *http.Request) {
 		if m.Active {
 			status = "Publicado"
 		}
-		
+
 		releaseDateStr := ""
 		if m.ReleaseDate.Valid {
 			releaseDateStr = m.ReleaseDate.Time.Format("2006-01-02")
@@ -216,7 +216,7 @@ func (s *Server) handleGetMovies(w http.ResponseWriter, r *http.Request) {
 // handleGetDevices obtiene la lista de dispositivos (sesiones)
 func (s *Server) handleGetDevices(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	devices, err := s.db.GetAdminDevicesList(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -229,7 +229,7 @@ func (s *Server) handleGetDevices(w http.ResponseWriter, r *http.Request) {
 		if d.Active {
 			status = "Activo"
 		}
-		
+
 		ip := "Desconocida"
 		if d.LastIp != nil {
 			ip = d.LastIp.String()

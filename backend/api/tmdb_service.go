@@ -112,7 +112,7 @@ func SyncMovieRelations(ctx context.Context, queries *db.Queries, movieId int64,
 	for _, g := range genres {
 		nameEng := g.Name
 		nameEsp := g.Name
-		
+
 		translated := TranslateNameWithAI(ctx, g.Name, "English")
 		if translated != "" && translated != g.Name {
 			nameEng = translated
@@ -239,9 +239,15 @@ func SyncMovieRelations(ctx context.Context, queries *db.Queries, movieId int64,
 		nameEng, nameLat, nameEsp, overview, backdrop := FetchCollectionDetailsSync(collection.Id)
 
 		slugBase := nameEng
-		if slugBase == "" { slugBase = nameLat }
-		if slugBase == "" { slugBase = nameEsp }
-		if slugBase == "" { slugBase = collection.Name }
+		if slugBase == "" {
+			slugBase = nameLat
+		}
+		if slugBase == "" {
+			slugBase = nameEsp
+		}
+		if slugBase == "" {
+			slugBase = collection.Name
+		}
 
 		colid, err := queries.UpsertCollection(ctx, db.UpsertCollectionParams{
 			TmdbID:       pgtype.Int8{Int64: collection.Id, Valid: true},
@@ -266,7 +272,7 @@ func SyncSerieRelations(ctx context.Context, queries *db.Queries, serieId int64,
 	for _, g := range genres {
 		nameEng := g.Name
 		nameEsp := g.Name
-		
+
 		translated := TranslateNameWithAI(ctx, g.Name, "English")
 		if translated != "" && translated != g.Name {
 			nameEng = translated

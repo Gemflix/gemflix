@@ -40,7 +40,7 @@ func (s *Server) handleGetVODHome(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
-		
+
 		tokenData, err := s.db.CheckTokenWithDevice(ctx, cookie.Value)
 		if err != nil {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -73,11 +73,11 @@ func (s *Server) handleGetVODHome(w http.ResponseWriter, r *http.Request) {
 		}
 		for i := 0; i < v.Len(); i++ {
 			item := v.Index(i).Interface()
-			
+
 			id := reflect.ValueOf(item).FieldByName("ID").Int()
 			title := reflect.ValueOf(item).FieldByName("Title").String()
 			slug := reflect.ValueOf(item).FieldByName("Slug").String()
-			
+
 			posterField := reflect.ValueOf(item).FieldByName("PosterPath")
 			poster := defaultPoster
 			if posterField.IsValid() && posterField.FieldByName("Valid").Bool() && posterField.FieldByName("String").String() != "" {
@@ -88,7 +88,7 @@ func (s *Server) handleGetVODHome(w http.ResponseWriter, r *http.Request) {
 					poster = val
 				}
 			}
-			
+
 			mapped = append(mapped, map[string]interface{}{
 				"id":     id,
 				"title":  title,
@@ -106,7 +106,7 @@ func (s *Server) handleGetVODHome(w http.ResponseWriter, r *http.Request) {
 	case "series":
 		trending, _ := s.db.GetPlayTrendingSeries(ctx)
 		recent, _ := s.db.GetPlayRecentSeries(ctx)
-		
+
 		if len(trending) > 0 {
 			hero = map[string]interface{}{
 				"title":    trending[0].Title,
@@ -120,8 +120,8 @@ func (s *Server) handleGetVODHome(w http.ResponseWriter, r *http.Request) {
 			cw, _ := s.db.GetContinueWatching(ctx, activeProfileID)
 			if len(cw) > 0 {
 				rows = append(rows, map[string]interface{}{
-					"title": "🎬 Continuar Viendo",
-					"items": mapItems(cw),
+					"title":    "🎬 Continuar Viendo",
+					"items":    mapItems(cw),
 					"row_type": "continue",
 				})
 			}
@@ -133,7 +133,7 @@ func (s *Server) handleGetVODHome(w http.ResponseWriter, r *http.Request) {
 	case "animes":
 		trending, _ := s.db.GetPlayTrendingAnimes(ctx)
 		recent, _ := s.db.GetPlayRecentAnimes(ctx)
-		
+
 		if len(trending) > 0 {
 			hero = map[string]interface{}{
 				"title":    trending[0].Title,
@@ -148,7 +148,7 @@ func (s *Server) handleGetVODHome(w http.ResponseWriter, r *http.Request) {
 	default: // movies
 		trending, _ := s.db.GetPlayTrendingMovies(ctx)
 		recent, _ := s.db.GetPlayRecentMovies(ctx)
-		
+
 		if len(trending) > 0 {
 			hero = map[string]interface{}{
 				"title":    trending[0].Title,
@@ -158,7 +158,7 @@ func (s *Server) handleGetVODHome(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			hero = map[string]interface{}{
-				"title": "Catálogo vacío",
+				"title":    "Catálogo vacío",
 				"overview": "Aún no hay contenido en esta sección.",
 				"backdrop": "",
 			}
@@ -168,8 +168,8 @@ func (s *Server) handleGetVODHome(w http.ResponseWriter, r *http.Request) {
 			cw, _ := s.db.GetContinueWatching(ctx, activeProfileID)
 			if len(cw) > 0 {
 				rows = append(rows, map[string]interface{}{
-					"title": "🎬 Continuar Viendo",
-					"items": mapItems(cw),
+					"title":    "🎬 Continuar Viendo",
+					"items":    mapItems(cw),
 					"row_type": "continue",
 				})
 			}
