@@ -58,6 +58,7 @@ services:
       - SUPERADMIN_EMAIL=${SUPERADMIN_EMAIL}
       - SUPERADMIN_PASSWORD=${SUPERADMIN_PASSWORD}
       - JWT_SECRET=${JWT_SECRET}
+      - DRIVE_WORKER_SECRET=${DRIVE_WORKER_SECRET}
     networks:
       - gemflix_internal
       - traefik_web_network
