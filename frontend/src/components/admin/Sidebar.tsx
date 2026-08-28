@@ -80,8 +80,15 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
         ];
       case "gemdrive":
         return [
-          { name: "Archivos", href: "/admin/gemdrive/files", icon: HardDrive },
-          { name: "Cuotas", href: "/admin/gemdrive/quotas", icon: Users },
+          { 
+            name: "Infraestructura Drive TI", 
+            icon: HardDrive, 
+            subItems: [
+              { name: "Monitor de Sincronización", href: "/admin/gemdrive/monitor" },
+              { name: "Cuentas de Servicio", href: "/admin/gemdrive/accounts" },
+              { name: "Fuentes (Catálogo)", href: "/admin/gemdrive/sources" },
+            ] 
+          },
         ];
       case "jellyfin":
         return [

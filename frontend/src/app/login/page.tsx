@@ -50,8 +50,8 @@ export default function AdminLogin() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
       {/* Luces decorativas */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent rounded-full blur-[120px] opacity-[0.04] pointer-events-none" />
-      <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-orange-700 rounded-full blur-[150px] opacity-[0.03] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-accent rounded-full blur-[120px] opacity-[0.04] pointer-events-none" />
+      <div className="absolute top-0 right-0 -mr-20 -mt-20 w-150 h-150 bg-orange-700 rounded-full mix-blend-multiply filter blur-[128px] opacity-20 animate-pulse pointer-events-none" />
 
       <div className="glass-panel w-full max-w-md p-8 rounded-2xl z-10 animate-in fade-in zoom-in-95 duration-500">
         {/* Logo */}
@@ -77,13 +77,13 @@ export default function AdminLogin() {
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-gray-300 ml-1">Correo Electrónico</label>
             <div className="relative group">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-accent transition-colors" size={18} />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-orange-500 transition-colors" size={18} />
               <input
                 type="email"
                 name="email"
                 required
                 autoComplete="email"
-                className="w-full bg-slate-900/50 border border-surface-border rounded-xl py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-accent transition-all duration-300 placeholder:text-gray-600"
+                className="w-full bg-slate-900/50 border border-gray-700 rounded-xl py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-orange-500 transition-all duration-300 placeholder:text-gray-600"
                 placeholder="admin@gemflix.org"
               />
             </div>
@@ -119,7 +119,7 @@ export default function AdminLogin() {
               role="checkbox"
               aria-checked={rememberMe}
               onClick={() => setRememberMe(!rememberMe)}
-              className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200 flex-shrink-0 ${
+              className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200 shrink-0 ${
                 rememberMe
                   ? "bg-orange-500 border-orange-500"
                   : "border-gray-600 bg-transparent hover:border-gray-400"

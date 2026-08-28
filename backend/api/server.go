@@ -56,6 +56,14 @@ func (s *Server) routes() {
 			r.Get("/me", s.handleAuthMe)
 		})
 
+		// Drive Worker (Cloudflare Edge Worker Integration)
+		r.Route("/drive/worker", func(r chi.Router) {
+			r.Use(s.WorkerSecretMiddleware)
+			r.Post("/validate-ticket", s.handleWorkerValidateTicket)
+			r.Post("/origin-credentials", s.handleWorkerOriginCredentials)
+			r.Post("/security-event", s.handleWorkerSecurityEvent)
+		})
+
 		// Play (VOD Públicos y Protegidos)
 		r.Route("/play", func(r chi.Router) {
 			r.Get("/settings", s.handleGetSettings)
@@ -167,6 +175,13 @@ func (s *Server) routes() {
 			r.With(s.RequirePermissionChi("manage_movies")).Post("/countries", s.handleCreateCountry)
 			r.With(s.RequirePermissionChi("manage_movies")).Put("/countries/{id}", s.handleUpdateCountry)
 			r.With(s.RequirePermissionChi("manage_movies")).Delete("/countries/{id}", s.handleDeleteCountry)
+
+			// GemDrive Admin
+			r.With(s.RequirePermissionChi("manage_settings")).Get("/drive/accounts", s.handleGetDriveAccounts)
+			r.With(s.RequirePermissionChi("manage_settings")).Post("/drive/accounts", s.handleCreateDriveAccount)
+			r.With(s.RequirePermissionChi("manage_settings")).Get("/drive/sources", s.handleGetDriveSources)
+			r.With(s.RequirePermissionChi("manage_settings")).Post("/drive/sources", s.handleCreateDriveSource)
+			r.With(s.RequirePermissionChi("manage_settings")).Get("/drive/monitor", s.handleGetDriveMonitorStats)
 		})
 	})
 }

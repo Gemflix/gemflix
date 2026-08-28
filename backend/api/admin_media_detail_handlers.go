@@ -467,7 +467,8 @@ func (s *Server) handleAddRelation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if mediaType == "movies" {
+	switch mediaType {
+	case "movies":
 		switch relType {
 		case "casts":
 			err = s.db.InsertMovieCast(r.Context(), db.InsertMovieCastParams{MovieID: mediaID, CastID: req.RelationID, SortOrder: 999})
@@ -480,7 +481,7 @@ func (s *Server) handleAddRelation(w http.ResponseWriter, r *http.Request) {
 		case "countries":
 			err = s.db.InsertMovieCountry(r.Context(), db.InsertMovieCountryParams{MovieID: mediaID, CountryID: req.RelationID})
 		}
-	} else if mediaType == "series" {
+	case "series":
 		switch relType {
 		case "casts":
 			err = s.db.InsertSerieCast(r.Context(), db.InsertSerieCastParams{SerieID: mediaID, CastID: req.RelationID, SortOrder: 999})
