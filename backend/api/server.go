@@ -46,8 +46,8 @@ func (s *Server) setupMiddlewares() {
 }
 
 func (s *Server) routes() {
-	// Agrupamos bajo /api
-	s.router.Route("/api", func(r chi.Router) {
+	// Agrupamos las rutas de la API (ahora en la raíz del backend ya que corre en api.gemflix.org)
+	s.router.Group(func(r chi.Router) {
 		
 		// Auth
 		r.Route("/auth", func(r chi.Router) {
