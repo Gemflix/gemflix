@@ -13,7 +13,8 @@ export default function SettingsPage() {
     themeMode: "dark",
     maintenanceMode: false,
     registrationEnabled: true,
-    publicCatalog: false
+    publicCatalog: false,
+    driveWorkerUrl: ""
   });
 
   useEffect(() => {
@@ -30,7 +31,8 @@ export default function SettingsPage() {
           publicCatalog: data.public_catalog === "true",
           maintenanceMode: data.maintenance_mode === "true",
           registrationEnabled: data.registration_enabled !== "false", // default true
-          siteName: data.site_name || "Gemflix"
+          siteName: data.site_name || "Gemflix",
+          driveWorkerUrl: data.drive_worker_url || ""
         }));
       }
     } catch (e) {
@@ -58,6 +60,13 @@ export default function SettingsPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ key: "site_name", value: settings.siteName }),
+        credentials: "include"
+      });
+      // Save drive_worker_url
+      await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "drive_worker_url", value: settings.driveWorkerUrl }),
         credentials: "include"
       });
       
@@ -112,6 +121,21 @@ export default function SettingsPage() {
                 <option value="light">Claro (Light Mode)</option>
                 <option value="system">Sistema</option>
               </select>
+            </div>
+          </div>
+
+          <div className="space-y-4 pt-4 border-t border-surface-border">
+            <h3 className="text-lg font-medium text-white mb-4">Integración GemDrive</h3>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-300">Drive Worker URL</label>
+              <input 
+                type="text" 
+                value={settings.driveWorkerUrl}
+                onChange={e => setSettings({...settings, driveWorkerUrl: e.target.value})}
+                placeholder="https://gemflix-storage-drive-edge-prod.gemflix-media.workers.dev"
+                className="w-full px-4 py-2 bg-black/20 border border-white/10 rounded-lg focus:outline-none focus:border-accent text-white"
+              />
+              <p className="text-xs text-gray-400">URL del Worker de Cloudflare usado para procesar el streaming de video.</p>
             </div>
           </div>
 

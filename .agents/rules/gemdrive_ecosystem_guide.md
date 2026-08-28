@@ -64,10 +64,12 @@ This rule defines the architecture and mandatory behavior for implementing the "
 ## 6. Environment Variables and Secrets (Rules)
 - **Go Backend (`compose.yaml` or Komodo):**
   - Needs `DRIVE_WORKER_SECRET` to authenticate incoming requests from the Cloudflare Worker.
-  - Needs `DRIVE_WORKER_URL` to generate playback and download URLs for clients.
   - Needs `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_DRIVE_API_TOKEN`, and `CLOUDFLARE_DRIVE_KV_NAMESPACE_ID` to push tickets preemptively to Cloudflare KV for ultra-fast validation.
   - Needs `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` to perform OAuth Refresh Token exchanges for the Personal/Workspace identities stored in the database.
   - Optional: `GOOGLE_DRIVE_BOOTSTRAP_EMAIL` and `GOOGLE_DRIVE_BOOTSTRAP_REFRESH_TOKEN` for initial bootstrapping without DB records.
+
+- **Global Settings (Database / Admin Panel):**
+  - `DRIVE_WORKER_URL`: Stored in the database and manageable via the Next.js Admin Settings page so it can be updated dynamically without container restarts.
 
 - **Cloudflare Edge Worker (Cloudflare Dashboard):**
   - `DRIVE_WORKER_SECRET`: The shared secret matching the backend.
