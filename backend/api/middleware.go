@@ -21,22 +21,27 @@ const (
 // AuthMiddlewareChi es un middleware estándar compatible con Chi (y net/http)
 func (s *Server) AuthMiddlewareChi(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// 1. Obtener cabecera Authorization
+		// 1. Obtener cabecera Authorization o cookie
+		var tokenString string
 		authHeader := r.Header.Get("Authorization")
-		if authHeader == "" {
+		
+		if authHeader != "" {
+			parts := strings.Split(authHeader, " ")
+			if len(parts) == 2 && parts[0] == "Bearer" {
+				tokenString = parts[1]
+			}
+		} else {
+			cookie, err := r.Cookie("gemflix_session")
+			if err == nil && cookie.Value != "" {
+				tokenString = cookie.Value
+			}
+		}
+
+		if tokenString == "" {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(`{"error": "No token provided"}`))
 			return
 		}
-
-		// 2. Extraer el token
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(`{"error": "Invalid authorization header format"}`))
-			return
-		}
-		tokenString := parts[1]
 
 		// 3. Verificar el JWT
 		claims, err := utils.ValidateAccessToken(tokenString)

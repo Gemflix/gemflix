@@ -12,14 +12,14 @@ import (
 )
 
 const cancelSubscription = `-- name: CancelSubscription :exec
-UPDATE billing.subscriptions
+UPDATE subscriptions
 SET status = 'canceled', canceled_at = NOW()
 WHERE id = $1 AND user_id = $2
 `
 
 type CancelSubscriptionParams struct {
-	ID     int64       `json:"id"`
-	UserID pgtype.Int8 `json:"user_id"`
+	ID     int64 `json:"id"`
+	UserID int64 `json:"user_id"`
 }
 
 func (q *Queries) CancelSubscription(ctx context.Context, arg CancelSubscriptionParams) error {
@@ -28,20 +28,21 @@ func (q *Queries) CancelSubscription(ctx context.Context, arg CancelSubscription
 }
 
 const createPlan = `-- name: CreatePlan :one
-INSERT INTO billing.plans (
-    key, category, name, color, priority, badge, is_featured, 
-    max_profiles, max_devices, max_pending_requests, parental_control, features
+INSERT INTO plans (
+    key, category, name, description, color, priority, badge, is_featured,
+    max_profiles, max_devices, max_pending_requests, parental_control,
+    features, is_active, sort_order
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
-)
-RETURNING id, key, category, name, color, priority, badge, is_featured, max_profiles, max_devices, max_pending_requests, parental_control, features, is_active, created_at, updated_at, deleted_at
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+) RETURNING id, key, category, name, description, color, priority, badge, is_featured, max_profiles, max_devices, max_pending_requests, parental_control, features, is_active, sort_order, created_at, updated_at
 `
 
 type CreatePlanParams struct {
 	Key                string      `json:"key"`
-	Category           string      `json:"category"`
+	Category           pgtype.Text `json:"category"`
 	Name               string      `json:"name"`
-	Color              string      `json:"color"`
+	Description        pgtype.Text `json:"description"`
+	Color              pgtype.Text `json:"color"`
 	Priority           int16       `json:"priority"`
 	Badge              pgtype.Text `json:"badge"`
 	IsFeatured         bool        `json:"is_featured"`
@@ -50,13 +51,16 @@ type CreatePlanParams struct {
 	MaxPendingRequests int16       `json:"max_pending_requests"`
 	ParentalControl    bool        `json:"parental_control"`
 	Features           []byte      `json:"features"`
+	IsActive           bool        `json:"is_active"`
+	SortOrder          int16       `json:"sort_order"`
 }
 
-func (q *Queries) CreatePlan(ctx context.Context, arg CreatePlanParams) (BillingPlan, error) {
+func (q *Queries) CreatePlan(ctx context.Context, arg CreatePlanParams) (Plan, error) {
 	row := q.db.QueryRow(ctx, createPlan,
 		arg.Key,
 		arg.Category,
 		arg.Name,
+		arg.Description,
 		arg.Color,
 		arg.Priority,
 		arg.Badge,
@@ -66,13 +70,16 @@ func (q *Queries) CreatePlan(ctx context.Context, arg CreatePlanParams) (Billing
 		arg.MaxPendingRequests,
 		arg.ParentalControl,
 		arg.Features,
+		arg.IsActive,
+		arg.SortOrder,
 	)
-	var i BillingPlan
+	var i Plan
 	err := row.Scan(
 		&i.ID,
 		&i.Key,
 		&i.Category,
 		&i.Name,
+		&i.Description,
 		&i.Color,
 		&i.Priority,
 		&i.Badge,
@@ -83,36 +90,44 @@ func (q *Queries) CreatePlan(ctx context.Context, arg CreatePlanParams) (Billing
 		&i.ParentalControl,
 		&i.Features,
 		&i.IsActive,
+		&i.SortOrder,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const createPlanPrice = `-- name: CreatePlanPrice :one
-INSERT INTO billing.plan_prices (
-    plan_id, currency, price_cents
+INSERT INTO plan_prices (
+    plan_id, currency, price_cents, interval
 ) VALUES (
-    $1, $2, $3
+    $1, $2, $3, $4
 )
-RETURNING id, plan_id, currency, price_cents, created_at, updated_at
+RETURNING id, plan_id, currency, price_cents, interval, is_active, created_at, updated_at
 `
 
 type CreatePlanPriceParams struct {
 	PlanID     int64  `json:"plan_id"`
 	Currency   string `json:"currency"`
-	PriceCents int32  `json:"price_cents"`
+	PriceCents int64  `json:"price_cents"`
+	Interval   string `json:"interval"`
 }
 
-func (q *Queries) CreatePlanPrice(ctx context.Context, arg CreatePlanPriceParams) (BillingPlanPrice, error) {
-	row := q.db.QueryRow(ctx, createPlanPrice, arg.PlanID, arg.Currency, arg.PriceCents)
-	var i BillingPlanPrice
+func (q *Queries) CreatePlanPrice(ctx context.Context, arg CreatePlanPriceParams) (PlanPrice, error) {
+	row := q.db.QueryRow(ctx, createPlanPrice,
+		arg.PlanID,
+		arg.Currency,
+		arg.PriceCents,
+		arg.Interval,
+	)
+	var i PlanPrice
 	err := row.Scan(
 		&i.ID,
 		&i.PlanID,
 		&i.Currency,
 		&i.PriceCents,
+		&i.Interval,
+		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -120,18 +135,18 @@ func (q *Queries) CreatePlanPrice(ctx context.Context, arg CreatePlanPriceParams
 }
 
 const createSubscription = `-- name: CreateSubscription :one
-INSERT INTO billing.subscriptions (
+INSERT INTO subscriptions (
     user_id, plan_id, status, starts_at, renews_at, ends_at, 
     plan_key_snapshot, plan_name_snapshot, currency_paid, price_paid_cents
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
 )
-RETURNING id, user_id, plan_id, status, starts_at, renews_at, ends_at, canceled_at, plan_key_snapshot, plan_name_snapshot, currency_paid, price_paid_cents, meta, created_at, updated_at
+RETURNING id, user_id, plan_id, status, plan_key_snapshot, plan_name_snapshot, currency_paid, price_paid_cents, starts_at, renews_at, ends_at, canceled_at, payment_method, reference_id, created_at, updated_at
 `
 
 type CreateSubscriptionParams struct {
-	UserID           pgtype.Int8        `json:"user_id"`
-	PlanID           int64              `json:"plan_id"`
+	UserID           int64              `json:"user_id"`
+	PlanID           pgtype.Int8        `json:"plan_id"`
 	Status           string             `json:"status"`
 	StartsAt         pgtype.Timestamptz `json:"starts_at"`
 	RenewsAt         pgtype.Timestamptz `json:"renews_at"`
@@ -139,10 +154,10 @@ type CreateSubscriptionParams struct {
 	PlanKeySnapshot  pgtype.Text        `json:"plan_key_snapshot"`
 	PlanNameSnapshot pgtype.Text        `json:"plan_name_snapshot"`
 	CurrencyPaid     pgtype.Text        `json:"currency_paid"`
-	PricePaidCents   pgtype.Int4        `json:"price_paid_cents"`
+	PricePaidCents   pgtype.Int8        `json:"price_paid_cents"`
 }
 
-func (q *Queries) CreateSubscription(ctx context.Context, arg CreateSubscriptionParams) (BillingSubscription, error) {
+func (q *Queries) CreateSubscription(ctx context.Context, arg CreateSubscriptionParams) (Subscription, error) {
 	row := q.db.QueryRow(ctx, createSubscription,
 		arg.UserID,
 		arg.PlanID,
@@ -155,31 +170,50 @@ func (q *Queries) CreateSubscription(ctx context.Context, arg CreateSubscription
 		arg.CurrencyPaid,
 		arg.PricePaidCents,
 	)
-	var i BillingSubscription
+	var i Subscription
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
 		&i.PlanID,
 		&i.Status,
-		&i.StartsAt,
-		&i.RenewsAt,
-		&i.EndsAt,
-		&i.CanceledAt,
 		&i.PlanKeySnapshot,
 		&i.PlanNameSnapshot,
 		&i.CurrencyPaid,
 		&i.PricePaidCents,
-		&i.Meta,
+		&i.StartsAt,
+		&i.RenewsAt,
+		&i.EndsAt,
+		&i.CanceledAt,
+		&i.PaymentMethod,
+		&i.ReferenceID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
 	return i, err
 }
 
+const deletePlan = `-- name: DeletePlan :exec
+DELETE FROM plans WHERE id = $1
+`
+
+func (q *Queries) DeletePlan(ctx context.Context, id int64) error {
+	_, err := q.db.Exec(ctx, deletePlan, id)
+	return err
+}
+
+const deletePlanPrices = `-- name: DeletePlanPrices :exec
+DELETE FROM plan_prices WHERE plan_id = $1
+`
+
+func (q *Queries) DeletePlanPrices(ctx context.Context, planID int64) error {
+	_, err := q.db.Exec(ctx, deletePlanPrices, planID)
+	return err
+}
+
 const getActiveUserSubscriptions = `-- name: GetActiveUserSubscriptions :many
-SELECT s.id, s.user_id, s.plan_id, s.status, s.starts_at, s.renews_at, s.ends_at, s.canceled_at, s.plan_key_snapshot, s.plan_name_snapshot, s.currency_paid, s.price_paid_cents, s.meta, s.created_at, s.updated_at, p.name as plan_name, p.category 
-FROM billing.subscriptions s
-JOIN billing.plans p ON s.plan_id = p.id
+SELECT s.id, s.user_id, s.plan_id, s.status, s.plan_key_snapshot, s.plan_name_snapshot, s.currency_paid, s.price_paid_cents, s.starts_at, s.renews_at, s.ends_at, s.canceled_at, s.payment_method, s.reference_id, s.created_at, s.updated_at, p.name as plan_name, p.category 
+FROM subscriptions s
+JOIN plans p ON s.plan_id = p.id
 WHERE s.user_id = $1 
   AND s.status = 'active'
   AND (s.ends_at IS NULL OR s.ends_at > NOW())
@@ -188,25 +222,26 @@ ORDER BY s.ends_at DESC
 
 type GetActiveUserSubscriptionsRow struct {
 	ID               int64              `json:"id"`
-	UserID           pgtype.Int8        `json:"user_id"`
-	PlanID           int64              `json:"plan_id"`
+	UserID           int64              `json:"user_id"`
+	PlanID           pgtype.Int8        `json:"plan_id"`
 	Status           string             `json:"status"`
+	PlanKeySnapshot  pgtype.Text        `json:"plan_key_snapshot"`
+	PlanNameSnapshot pgtype.Text        `json:"plan_name_snapshot"`
+	CurrencyPaid     pgtype.Text        `json:"currency_paid"`
+	PricePaidCents   pgtype.Int8        `json:"price_paid_cents"`
 	StartsAt         pgtype.Timestamptz `json:"starts_at"`
 	RenewsAt         pgtype.Timestamptz `json:"renews_at"`
 	EndsAt           pgtype.Timestamptz `json:"ends_at"`
 	CanceledAt       pgtype.Timestamptz `json:"canceled_at"`
-	PlanKeySnapshot  pgtype.Text        `json:"plan_key_snapshot"`
-	PlanNameSnapshot pgtype.Text        `json:"plan_name_snapshot"`
-	CurrencyPaid     pgtype.Text        `json:"currency_paid"`
-	PricePaidCents   pgtype.Int4        `json:"price_paid_cents"`
-	Meta             []byte             `json:"meta"`
+	PaymentMethod    pgtype.Text        `json:"payment_method"`
+	ReferenceID      pgtype.Text        `json:"reference_id"`
 	CreatedAt        pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
 	PlanName         string             `json:"plan_name"`
-	Category         string             `json:"category"`
+	Category         pgtype.Text        `json:"category"`
 }
 
-func (q *Queries) GetActiveUserSubscriptions(ctx context.Context, userID pgtype.Int8) ([]GetActiveUserSubscriptionsRow, error) {
+func (q *Queries) GetActiveUserSubscriptions(ctx context.Context, userID int64) ([]GetActiveUserSubscriptionsRow, error) {
 	rows, err := q.db.Query(ctx, getActiveUserSubscriptions, userID)
 	if err != nil {
 		return nil, err
@@ -220,15 +255,16 @@ func (q *Queries) GetActiveUserSubscriptions(ctx context.Context, userID pgtype.
 			&i.UserID,
 			&i.PlanID,
 			&i.Status,
-			&i.StartsAt,
-			&i.RenewsAt,
-			&i.EndsAt,
-			&i.CanceledAt,
 			&i.PlanKeySnapshot,
 			&i.PlanNameSnapshot,
 			&i.CurrencyPaid,
 			&i.PricePaidCents,
-			&i.Meta,
+			&i.StartsAt,
+			&i.RenewsAt,
+			&i.EndsAt,
+			&i.CanceledAt,
+			&i.PaymentMethod,
+			&i.ReferenceID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.PlanName,
@@ -244,25 +280,78 @@ func (q *Queries) GetActiveUserSubscriptions(ctx context.Context, userID pgtype.
 	return items, nil
 }
 
+const getPlan = `-- name: GetPlan :one
+SELECT id, key, category, name, description, color, priority, badge, is_featured, max_profiles, max_devices, max_pending_requests, parental_control, features, is_active, sort_order, created_at, updated_at FROM plans WHERE id = $1
+`
+
+func (q *Queries) GetPlan(ctx context.Context, id int64) (Plan, error) {
+	row := q.db.QueryRow(ctx, getPlan, id)
+	var i Plan
+	err := row.Scan(
+		&i.ID,
+		&i.Key,
+		&i.Category,
+		&i.Name,
+		&i.Description,
+		&i.Color,
+		&i.Priority,
+		&i.Badge,
+		&i.IsFeatured,
+		&i.MaxProfiles,
+		&i.MaxDevices,
+		&i.MaxPendingRequests,
+		&i.ParentalControl,
+		&i.Features,
+		&i.IsActive,
+		&i.SortOrder,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getPlanPrice = `-- name: GetPlanPrice :one
+SELECT id, plan_id, currency, price_cents, interval, is_active, created_at, updated_at FROM plan_prices
+WHERE id = $1
+`
+
+func (q *Queries) GetPlanPrice(ctx context.Context, id int64) (PlanPrice, error) {
+	row := q.db.QueryRow(ctx, getPlanPrice, id)
+	var i PlanPrice
+	err := row.Scan(
+		&i.ID,
+		&i.PlanID,
+		&i.Currency,
+		&i.PriceCents,
+		&i.Interval,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getPlanPrices = `-- name: GetPlanPrices :many
-SELECT id, plan_id, currency, price_cents, created_at, updated_at FROM billing.plan_prices
+SELECT id, plan_id, currency, price_cents, interval, is_active, created_at, updated_at FROM plan_prices
 WHERE plan_id = $1
 `
 
-func (q *Queries) GetPlanPrices(ctx context.Context, planID int64) ([]BillingPlanPrice, error) {
+func (q *Queries) GetPlanPrices(ctx context.Context, planID int64) ([]PlanPrice, error) {
 	rows, err := q.db.Query(ctx, getPlanPrices, planID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []BillingPlanPrice
+	var items []PlanPrice
 	for rows.Next() {
-		var i BillingPlanPrice
+		var i PlanPrice
 		if err := rows.Scan(
 			&i.ID,
 			&i.PlanID,
 			&i.Currency,
 			&i.PriceCents,
+			&i.Interval,
+			&i.IsActive,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -277,25 +366,26 @@ func (q *Queries) GetPlanPrices(ctx context.Context, planID int64) ([]BillingPla
 }
 
 const listActivePlans = `-- name: ListActivePlans :many
-SELECT id, key, category, name, color, priority, badge, is_featured, max_profiles, max_devices, max_pending_requests, parental_control, features, is_active, created_at, updated_at, deleted_at FROM billing.plans
-WHERE is_active = TRUE AND deleted_at IS NULL
+SELECT id, key, category, name, description, color, priority, badge, is_featured, max_profiles, max_devices, max_pending_requests, parental_control, features, is_active, sort_order, created_at, updated_at FROM plans
+WHERE is_active = TRUE
 ORDER BY priority DESC
 `
 
-func (q *Queries) ListActivePlans(ctx context.Context) ([]BillingPlan, error) {
+func (q *Queries) ListActivePlans(ctx context.Context) ([]Plan, error) {
 	rows, err := q.db.Query(ctx, listActivePlans)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []BillingPlan
+	var items []Plan
 	for rows.Next() {
-		var i BillingPlan
+		var i Plan
 		if err := rows.Scan(
 			&i.ID,
 			&i.Key,
 			&i.Category,
 			&i.Name,
+			&i.Description,
 			&i.Color,
 			&i.Priority,
 			&i.Badge,
@@ -306,9 +396,9 @@ func (q *Queries) ListActivePlans(ctx context.Context) ([]BillingPlan, error) {
 			&i.ParentalControl,
 			&i.Features,
 			&i.IsActive,
+			&i.SortOrder,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.DeletedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -318,4 +408,133 @@ func (q *Queries) ListActivePlans(ctx context.Context) ([]BillingPlan, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const listPlans = `-- name: ListPlans :many
+SELECT id, key, category, name, description, color, priority, badge, is_featured, max_profiles, max_devices, max_pending_requests, parental_control, features, is_active, sort_order, created_at, updated_at FROM plans
+ORDER BY sort_order ASC, priority DESC
+`
+
+func (q *Queries) ListPlans(ctx context.Context) ([]Plan, error) {
+	rows, err := q.db.Query(ctx, listPlans)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Plan
+	for rows.Next() {
+		var i Plan
+		if err := rows.Scan(
+			&i.ID,
+			&i.Key,
+			&i.Category,
+			&i.Name,
+			&i.Description,
+			&i.Color,
+			&i.Priority,
+			&i.Badge,
+			&i.IsFeatured,
+			&i.MaxProfiles,
+			&i.MaxDevices,
+			&i.MaxPendingRequests,
+			&i.ParentalControl,
+			&i.Features,
+			&i.IsActive,
+			&i.SortOrder,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updatePlan = `-- name: UpdatePlan :one
+UPDATE plans
+SET 
+    key = coalesce($1, key),
+    category = coalesce($2, category),
+    name = coalesce($3, name),
+    description = coalesce($4, description),
+    color = coalesce($5, color),
+    priority = coalesce($6, priority),
+    badge = coalesce($7, badge),
+    is_featured = coalesce($8, is_featured),
+    max_profiles = coalesce($9, max_profiles),
+    max_devices = coalesce($10, max_devices),
+    max_pending_requests = coalesce($11, max_pending_requests),
+    parental_control = coalesce($12, parental_control),
+    features = coalesce($13, features),
+    is_active = coalesce($14, is_active),
+    sort_order = coalesce($15, sort_order),
+    updated_at = NOW()
+WHERE id = $16
+RETURNING id, key, category, name, description, color, priority, badge, is_featured, max_profiles, max_devices, max_pending_requests, parental_control, features, is_active, sort_order, created_at, updated_at
+`
+
+type UpdatePlanParams struct {
+	Key                pgtype.Text `json:"key"`
+	Category           pgtype.Text `json:"category"`
+	Name               pgtype.Text `json:"name"`
+	Description        pgtype.Text `json:"description"`
+	Color              pgtype.Text `json:"color"`
+	Priority           pgtype.Int2 `json:"priority"`
+	Badge              pgtype.Text `json:"badge"`
+	IsFeatured         pgtype.Bool `json:"is_featured"`
+	MaxProfiles        pgtype.Int2 `json:"max_profiles"`
+	MaxDevices         pgtype.Int2 `json:"max_devices"`
+	MaxPendingRequests pgtype.Int2 `json:"max_pending_requests"`
+	ParentalControl    pgtype.Bool `json:"parental_control"`
+	Features           []byte      `json:"features"`
+	IsActive           pgtype.Bool `json:"is_active"`
+	SortOrder          pgtype.Int2 `json:"sort_order"`
+	ID                 int64       `json:"id"`
+}
+
+func (q *Queries) UpdatePlan(ctx context.Context, arg UpdatePlanParams) (Plan, error) {
+	row := q.db.QueryRow(ctx, updatePlan,
+		arg.Key,
+		arg.Category,
+		arg.Name,
+		arg.Description,
+		arg.Color,
+		arg.Priority,
+		arg.Badge,
+		arg.IsFeatured,
+		arg.MaxProfiles,
+		arg.MaxDevices,
+		arg.MaxPendingRequests,
+		arg.ParentalControl,
+		arg.Features,
+		arg.IsActive,
+		arg.SortOrder,
+		arg.ID,
+	)
+	var i Plan
+	err := row.Scan(
+		&i.ID,
+		&i.Key,
+		&i.Category,
+		&i.Name,
+		&i.Description,
+		&i.Color,
+		&i.Priority,
+		&i.Badge,
+		&i.IsFeatured,
+		&i.MaxProfiles,
+		&i.MaxDevices,
+		&i.MaxPendingRequests,
+		&i.ParentalControl,
+		&i.Features,
+		&i.IsActive,
+		&i.SortOrder,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

@@ -23,7 +23,7 @@ async function getCatalogData(endpoint: string, searchParams: { [key: string]: s
   if (searchParams.year) params.set("year", searchParams.year as string);
   
   const apiUrl = getApiUrl();
-  const url = `${apiUrl}/api/play/catalog/${endpoint}?${params.toString()}`;
+  const url = `${apiUrl}/play/catalog/${endpoint}?${params.toString()}`;
   
   try {
     const res = await fetch(url, { cache: 'no-store' });

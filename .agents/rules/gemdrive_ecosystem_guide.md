@@ -30,8 +30,9 @@ This rule defines the architecture and mandatory behavior for implementing the "
     - `APPEND`: Adds/updates without deactivating missing items.
 - **Sync Worker Parsing Logic (Plex/Jellyfin Standard):**
   - The Sync Worker MUST NOT guess movies by raw filename. It must strictly parse the Plex/Jellyfin naming convention from the folder or filename.
-  - Required format: `{tmdb-ID}` (e.g., `Deadpool & Wolverine (2024) {tmdb-533535} [LAT-ENG].mp4`).
-  - If multiple files share the same `{tmdb-ID}` (e.g. 1080p and 4K versions, or different dubs), they must automatically be linked to the same movie in the `catalog.movies` table without manual intervention.
+  - Required format: `[tmdbid-ID]` (e.g., `Héroe (2002) [tmdbid-79] [VS].mp4`).
+  - **Media Analysis (FFprobe):** Do not rely on filename tags (like [1080p] or [LAT]) for technical specs. The Sync worker must use HTTP Range requests (first ~5-10MB) directly from the Google Drive API and pipe it to `ffprobe` to automatically detect exact resolution, video codec, and audio languages.
+  - If multiple files share the same `[tmdbid-ID]`, they must automatically be linked to the same movie in the `catalog.movies` table without manual intervention.
 
 ## 3. Drive Replica Targets (GemReplicas)
 - **Purpose:** Controlled Shared Drives where the system creates temporary copies (Replicas) for streaming and downloading. It is NOT a source.

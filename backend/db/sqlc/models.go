@@ -10,56 +10,83 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Achievement struct {
+	ID           int64              `json:"id"`
+	Key          string             `json:"key"`
+	Name         string             `json:"name"`
+	Description  string             `json:"description"`
+	Icon         string             `json:"icon"`
+	RequiredXp   int32              `json:"required_xp"`
+	RewardTokens int32              `json:"reward_tokens"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
+type ActivityLog struct {
+	ID               int64              `json:"id"`
+	LogName          pgtype.Text        `json:"log_name"`
+	Description      string             `json:"description"`
+	TargetTable      pgtype.Text        `json:"target_table"`
+	TargetID         pgtype.Int8        `json:"target_id"`
+	Event            pgtype.Text        `json:"event"`
+	UserID           pgtype.Int8        `json:"user_id"`
+	AttributeChanges []byte             `json:"attribute_changes"`
+	Properties       []byte             `json:"properties"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Ad struct {
+	ID           int64              `json:"id"`
+	Company      pgtype.Text        `json:"company"`
+	Type         string             `json:"type"`
+	Content      string             `json:"content"`
+	IsRewarded   bool               `json:"is_rewarded"`
+	RewardTokens int32              `json:"reward_tokens"`
+	DailyLimit   int16              `json:"daily_limit"`
+	IsActive     bool               `json:"is_active"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+	Priority     int32              `json:"priority"`
+}
+
 type AppSetting struct {
+	ID          int64              `json:"id"`
 	Key         string             `json:"key"`
-	Value       string             `json:"value"`
+	Value       []byte             `json:"value"`
+	IsLocked    bool               `json:"is_locked"`
 	Description pgtype.Text        `json:"description"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
-type BillingPlan struct {
-	ID                 int64              `json:"id"`
-	Key                string             `json:"key"`
-	Category           string             `json:"category"`
-	Name               string             `json:"name"`
-	Color              string             `json:"color"`
-	Priority           int16              `json:"priority"`
-	Badge              pgtype.Text        `json:"badge"`
-	IsFeatured         bool               `json:"is_featured"`
-	MaxProfiles        int16              `json:"max_profiles"`
-	MaxDevices         int16              `json:"max_devices"`
-	MaxPendingRequests int16              `json:"max_pending_requests"`
-	ParentalControl    bool               `json:"parental_control"`
-	Features           []byte             `json:"features"`
-	IsActive           bool               `json:"is_active"`
-	CreatedAt          pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
-	DeletedAt          pgtype.Timestamptz `json:"deleted_at"`
+type ArcadeGameSetting struct {
+	ID                    int64              `json:"id"`
+	Slug                  string             `json:"slug"`
+	Name                  string             `json:"name"`
+	IsActive              bool               `json:"is_active"`
+	PlayCostTokens        int32              `json:"play_cost_tokens"`
+	DailyFreePlays        int16              `json:"daily_free_plays"`
+	MaxAdPlays            int16              `json:"max_ad_plays"`
+	WinProbabilityPercent int16              `json:"win_probability_percent"`
+	HappyHourStart        pgtype.Time        `json:"happy_hour_start"`
+	HappyHourEnd          pgtype.Time        `json:"happy_hour_end"`
+	HappyHourMultiplier   int16              `json:"happy_hour_multiplier"`
+	DoubleRewardDays      []byte             `json:"double_reward_days"`
+	PrizesJson            []byte             `json:"prizes_json"`
+	CreatedAt             pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt             pgtype.Timestamptz `json:"updated_at"`
 }
 
-type BillingPlanPrice struct {
-	ID         int64              `json:"id"`
-	PlanID     int64              `json:"plan_id"`
-	Currency   string             `json:"currency"`
-	PriceCents int32              `json:"price_cents"`
-	CreatedAt  pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
-}
-
-type BillingSubscription struct {
+type ArcadeUserStat struct {
 	ID               int64              `json:"id"`
-	UserID           pgtype.Int8        `json:"user_id"`
-	PlanID           int64              `json:"plan_id"`
-	Status           string             `json:"status"`
-	StartsAt         pgtype.Timestamptz `json:"starts_at"`
-	RenewsAt         pgtype.Timestamptz `json:"renews_at"`
-	EndsAt           pgtype.Timestamptz `json:"ends_at"`
-	CanceledAt       pgtype.Timestamptz `json:"canceled_at"`
-	PlanKeySnapshot  pgtype.Text        `json:"plan_key_snapshot"`
-	PlanNameSnapshot pgtype.Text        `json:"plan_name_snapshot"`
-	CurrencyPaid     pgtype.Text        `json:"currency_paid"`
-	PricePaidCents   pgtype.Int4        `json:"price_paid_cents"`
-	Meta             []byte             `json:"meta"`
+	UserID           int64              `json:"user_id"`
+	Level            int32              `json:"level"`
+	XpPoints         int64              `json:"xp_points"`
+	RpCupsWeekly     int32              `json:"rp_cups_weekly"`
+	RpCupsMonthly    int32              `json:"rp_cups_monthly"`
+	TotalGamesPlayed int32              `json:"total_games_played"`
+	DeviceID         pgtype.Text        `json:"device_id"`
 	CreatedAt        pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
 }
@@ -113,6 +140,17 @@ type Collection struct {
 	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 }
 
+type ContentRequest struct {
+	ID        int64              `json:"id"`
+	UserID    int64              `json:"user_id"`
+	Title     string             `json:"title"`
+	TmdbID    pgtype.Int8        `json:"tmdb_id"`
+	Status    string             `json:"status"`
+	Notes     pgtype.Text        `json:"notes"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Country struct {
 	ID          int64              `json:"id"`
 	Uuid        pgtype.UUID        `json:"uuid"`
@@ -122,6 +160,36 @@ type Country struct {
 	LogoPath    pgtype.Text        `json:"logo_path"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type CuratorMedium struct {
+	ID          int64              `json:"id"`
+	Name        string             `json:"name"`
+	Path        string             `json:"path"`
+	Width       pgtype.Int4        `json:"width"`
+	Height      pgtype.Int4        `json:"height"`
+	Size        pgtype.Int4        `json:"size"`
+	Type        string             `json:"type"`
+	Ext         string             `json:"ext"`
+	Alt         pgtype.Text        `json:"alt"`
+	Title       pgtype.Text        `json:"title"`
+	Description pgtype.Text        `json:"description"`
+	Caption     pgtype.Text        `json:"caption"`
+	PrettyName  pgtype.Text        `json:"pretty_name"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type DailyMission struct {
+	ID            int64              `json:"id"`
+	UserID        int64              `json:"user_id"`
+	ActionType    string             `json:"action_type"`
+	RequiredCount int32              `json:"required_count"`
+	CurrentCount  int32              `json:"current_count"`
+	IsCompleted   bool               `json:"is_completed"`
+	Date          pgtype.Date        `json:"date"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 }
 
 type Device struct {
@@ -143,6 +211,14 @@ type Device struct {
 	Active          bool               `json:"active"`
 	CreatedAt       pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Download struct {
+	ID           int64              `json:"id"`
+	UserID       int64              `json:"user_id"`
+	ContentType  string             `json:"content_type"`
+	ContentID    int64              `json:"content_id"`
+	DownloadedAt pgtype.Timestamptz `json:"downloaded_at"`
 }
 
 type DriveItem struct {
@@ -177,6 +253,17 @@ type DriveReplica struct {
 	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
 }
 
+type DriveSecurityBlock struct {
+	ID        int64              `json:"id"`
+	Type      string             `json:"type"`
+	Value     string             `json:"value"`
+	Reason    pgtype.Text        `json:"reason"`
+	ExpiresAt pgtype.Timestamptz `json:"expires_at"`
+	Active    bool               `json:"active"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
 type DriveServiceAccount struct {
 	ID              int64              `json:"id"`
 	Name            string             `json:"name"`
@@ -202,6 +289,23 @@ type DriveSource struct {
 	UpdatedAt           pgtype.Timestamptz `json:"updated_at"`
 }
 
+type DriveStorageAccessToken struct {
+	ID          int64              `json:"id"`
+	TokenHash   string             `json:"token_hash"`
+	DriveItemID int64              `json:"drive_item_id"`
+	UserID      pgtype.Int8        `json:"user_id"`
+	DeviceID    pgtype.Int8        `json:"device_id"`
+	AccessType  string             `json:"access_type"`
+	Ip          *netip.Addr        `json:"ip"`
+	UserAgent   pgtype.Text        `json:"user_agent"`
+	ExpiresAt   pgtype.Timestamptz `json:"expires_at"`
+	LastUsedAt  pgtype.Timestamptz `json:"last_used_at"`
+	RevokedAt   pgtype.Timestamptz `json:"revoked_at"`
+	BytesServed int64              `json:"bytes_served"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
 type DriveSyncRun struct {
 	ID           int64              `json:"id"`
 	SourceID     pgtype.Int8        `json:"source_id"`
@@ -215,12 +319,42 @@ type DriveSyncRun struct {
 	FinishedAt   pgtype.Timestamptz `json:"finished_at"`
 }
 
+type EventProvider struct {
+	ID              int64              `json:"id"`
+	Name            string             `json:"name"`
+	Url             string             `json:"url"`
+	GroupKey        string             `json:"group_key"`
+	AppendTimestamp bool               `json:"append_timestamp"`
+	CacheTtl        int16              `json:"cache_ttl"`
+	SortOrder       int32              `json:"sort_order"`
+	IsActive        bool               `json:"is_active"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Favorite struct {
-	ID        int64              `json:"id"`
-	ProfileID int64              `json:"profile_id"`
-	MovieID   pgtype.Int8        `json:"movie_id"`
-	SerieID   pgtype.Int8        `json:"serie_id"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	ID          int64              `json:"id"`
+	ProfileID   int64              `json:"profile_id"`
+	ContentType string             `json:"content_type"`
+	ContentID   int64              `json:"content_id"`
+	TmdbID      pgtype.Int8        `json:"tmdb_id"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type FinanceTransaction struct {
+	ID          int64              `json:"id"`
+	Title       string             `json:"title"`
+	Amount      pgtype.Numeric     `json:"amount"`
+	Currency    string             `json:"currency"`
+	Type        string             `json:"type"`
+	CategoryID  pgtype.Int8        `json:"category_id"`
+	PlanID      pgtype.Int8        `json:"plan_id"`
+	Date        pgtype.Date        `json:"date"`
+	Description pgtype.Text        `json:"description"`
+	ReferenceID pgtype.Text        `json:"reference_id"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
 type Genre struct {
@@ -233,6 +367,21 @@ type Genre struct {
 	ImagePath pgtype.Text        `json:"image_path"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+type IptvPlaylist struct {
+	ID            int64              `json:"id"`
+	Name          pgtype.Text        `json:"name"`
+	Url           string             `json:"url"`
+	Username      string             `json:"username"`
+	Password      string             `json:"password"`
+	ServerKey     pgtype.Text        `json:"server_key"`
+	IsOnline      pgtype.Bool        `json:"is_online"`
+	LastCheckedAt pgtype.Timestamptz `json:"last_checked_at"`
+	IsActive      bool               `json:"is_active"`
+	AutoDelete    bool               `json:"auto_delete"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 }
 
 type JellyfinPlanRule struct {
@@ -264,6 +413,51 @@ type JellyfinUser struct {
 	SyncStatus         string             `json:"sync_status"`
 	CreatedAt          pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Livetv struct {
+	ID                int64              `json:"id"`
+	Uuid              pgtype.UUID        `json:"uuid"`
+	Slug              string             `json:"slug"`
+	Name              string             `json:"name"`
+	Overview          pgtype.Text        `json:"overview"`
+	PosterPath        pgtype.Text        `json:"poster_path"`
+	BackdropPath      pgtype.Text        `json:"backdrop_path"`
+	BackdropPathTv    pgtype.Text        `json:"backdrop_path_tv"`
+	EpgChannelID      pgtype.Text        `json:"epg_channel_id"`
+	ChannelNumber     pgtype.Int4        `json:"channel_number"`
+	TvArchive         bool               `json:"tv_archive"`
+	TvArchiveDuration pgtype.Int2        `json:"tv_archive_duration"`
+	Featured          bool               `json:"featured"`
+	Active            bool               `json:"active"`
+	Premium           bool               `json:"premium"`
+	IsProtected       bool               `json:"is_protected"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
+}
+
+type LivetvCategory struct {
+	LivetvID   int64 `json:"livetv_id"`
+	CategoryID int64 `json:"category_id"`
+}
+
+type LivetvVideo struct {
+	ID            int64              `json:"id"`
+	LivetvID      int64              `json:"livetv_id"`
+	Server        pgtype.Text        `json:"server"`
+	StreamID      pgtype.Text        `json:"stream_id"`
+	Link          string             `json:"link"`
+	LinkHash      string             `json:"link_hash"`
+	Headers       pgtype.Text        `json:"headers"`
+	Useragent     pgtype.Text        `json:"useragent"`
+	Lang          pgtype.Text        `json:"lang"`
+	Embed         bool               `json:"embed"`
+	Hls           bool               `json:"hls"`
+	Status        bool               `json:"status"`
+	LastCheckedAt pgtype.Timestamptz `json:"last_checked_at"`
+	FailCount     int16              `json:"fail_count"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 }
 
 type LoginCode struct {
@@ -320,30 +514,6 @@ type MediaPlaybackSession struct {
 	IsActive      bool               `json:"is_active"`
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
-}
-
-type MediaReport struct {
-	ID        int64              `json:"id"`
-	UserID    int64              `json:"user_id"`
-	MediaType string             `json:"media_type"`
-	MediaID   int64              `json:"media_id"`
-	Reason    string             `json:"reason"`
-	Details   pgtype.Text        `json:"details"`
-	Status    string             `json:"status"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
-}
-
-type MediaRequest struct {
-	ID        int64              `json:"id"`
-	UserID    int64              `json:"user_id"`
-	TmdbID    pgtype.Int4        `json:"tmdb_id"`
-	Title     string             `json:"title"`
-	MediaType string             `json:"media_type"`
-	Status    string             `json:"status"`
-	Notes     pgtype.Text        `json:"notes"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
 type MediaSource struct {
@@ -409,7 +579,9 @@ type Movie struct {
 	ReleaseDate     pgtype.Date        `json:"release_date"`
 	Runtime         pgtype.Int2        `json:"runtime"`
 	PosterPath      pgtype.Text        `json:"poster_path"`
+	PosterPathTv    pgtype.Text        `json:"poster_path_tv"`
 	BackdropPath    pgtype.Text        `json:"backdrop_path"`
+	LogoPath        pgtype.Text        `json:"logo_path"`
 	Certification   pgtype.Text        `json:"certification"`
 	VoteAverage     pgtype.Numeric     `json:"vote_average"`
 	VoteCount       int64              `json:"vote_count"`
@@ -469,6 +641,16 @@ type Network struct {
 	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 }
 
+type Notification struct {
+	ID        pgtype.UUID        `json:"id"`
+	Type      string             `json:"type"`
+	UserID    int64              `json:"user_id"`
+	Data      []byte             `json:"data"`
+	ReadAt    pgtype.Timestamptz `json:"read_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
 type OauthProvider struct {
 	ID             int64              `json:"id"`
 	UserID         int64              `json:"user_id"`
@@ -504,6 +686,38 @@ type PersonalAccessToken struct {
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 }
 
+type Plan struct {
+	ID                 int64              `json:"id"`
+	Key                string             `json:"key"`
+	Category           pgtype.Text        `json:"category"`
+	Name               string             `json:"name"`
+	Description        pgtype.Text        `json:"description"`
+	Color              pgtype.Text        `json:"color"`
+	Priority           int16              `json:"priority"`
+	Badge              pgtype.Text        `json:"badge"`
+	IsFeatured         bool               `json:"is_featured"`
+	MaxProfiles        int16              `json:"max_profiles"`
+	MaxDevices         int16              `json:"max_devices"`
+	MaxPendingRequests int16              `json:"max_pending_requests"`
+	ParentalControl    bool               `json:"parental_control"`
+	Features           []byte             `json:"features"`
+	IsActive           bool               `json:"is_active"`
+	SortOrder          int16              `json:"sort_order"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
+}
+
+type PlanPrice struct {
+	ID         int64              `json:"id"`
+	PlanID     int64              `json:"plan_id"`
+	Currency   string             `json:"currency"`
+	PriceCents int64              `json:"price_cents"`
+	Interval   string             `json:"interval"`
+	IsActive   bool               `json:"is_active"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
 type Profile struct {
 	ID                int64              `json:"id"`
 	UserID            int64              `json:"user_id"`
@@ -528,6 +742,35 @@ type ProfileParentalControl struct {
 	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
 }
 
+type ProfileView struct {
+	ID          int64              `json:"id"`
+	ProfileID   int64              `json:"profile_id"`
+	ContentType string             `json:"content_type"`
+	ContentID   int64              `json:"content_id"`
+	ViewedAt    pgtype.Timestamptz `json:"viewed_at"`
+}
+
+type PromoCode struct {
+	ID         int64              `json:"id"`
+	Code       string             `json:"code"`
+	Type       string             `json:"type"`
+	Value      pgtype.Numeric     `json:"value"`
+	MaxUses    pgtype.Int4        `json:"max_uses"`
+	Uses       int32              `json:"uses"`
+	ValidFrom  pgtype.Timestamptz `json:"valid_from"`
+	ValidUntil pgtype.Timestamptz `json:"valid_until"`
+	IsActive   bool               `json:"is_active"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
+type PromoRedemption struct {
+	ID          int64              `json:"id"`
+	UserID      int64              `json:"user_id"`
+	PromoCodeID int64              `json:"promo_code_id"`
+	RedeemedAt  pgtype.Timestamptz `json:"redeemed_at"`
+}
+
 type Provider struct {
 	ID        int64              `json:"id"`
 	Name      string             `json:"name"`
@@ -536,6 +779,33 @@ type Provider struct {
 	IsActive  bool               `json:"is_active"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Referral struct {
+	ID              int64              `json:"id"`
+	ReferrerUserID  pgtype.Int8        `json:"referrer_user_id"`
+	DeviceID        pgtype.Int8        `json:"device_id"`
+	AttributionHash pgtype.Text        `json:"attribution_hash"`
+	RefereeUserID   pgtype.Int8        `json:"referee_user_id"`
+	PromoCodeID     pgtype.Int8        `json:"promo_code_id"`
+	Status          string             `json:"status"`
+	ConvertedAt     pgtype.Timestamptz `json:"converted_at"`
+	RewardedAt      pgtype.Timestamptz `json:"rewarded_at"`
+	Meta            []byte             `json:"meta"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Report struct {
+	ID          int64              `json:"id"`
+	UserID      int64              `json:"user_id"`
+	ContentType string             `json:"content_type"`
+	ContentID   int64              `json:"content_id"`
+	Reason      string             `json:"reason"`
+	Details     pgtype.Text        `json:"details"`
+	Status      string             `json:"status"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
 type Role struct {
@@ -551,6 +821,88 @@ type RolePermission struct {
 	RoleID       int64              `json:"role_id"`
 	PermissionID int64              `json:"permission_id"`
 	AssignedAt   pgtype.Timestamptz `json:"assigned_at"`
+}
+
+type ScraperRun struct {
+	ID              int64              `json:"id"`
+	Uuid            pgtype.UUID        `json:"uuid"`
+	ScraperSourceID int64              `json:"scraper_source_id"`
+	TriggerType     string             `json:"trigger_type"`
+	Status          string             `json:"status"`
+	Queue           pgtype.Text        `json:"queue"`
+	JobID           pgtype.Text        `json:"job_id"`
+	BatchID         pgtype.Text        `json:"batch_id"`
+	CursorStart     pgtype.Text        `json:"cursor_start"`
+	CursorCurrent   pgtype.Text        `json:"cursor_current"`
+	CursorEnd       pgtype.Text        `json:"cursor_end"`
+	ItemsDetected   int64              `json:"items_detected"`
+	ItemsProcessed  int64              `json:"items_processed"`
+	ItemsCreated    int64              `json:"items_created"`
+	ItemsUpdated    int64              `json:"items_updated"`
+	ItemsSkipped    int64              `json:"items_skipped"`
+	ItemsFailed     int64              `json:"items_failed"`
+	QueuedAt        pgtype.Timestamptz `json:"queued_at"`
+	StartedAt       pgtype.Timestamptz `json:"started_at"`
+	HeartbeatAt     pgtype.Timestamptz `json:"heartbeat_at"`
+	FinishedAt      pgtype.Timestamptz `json:"finished_at"`
+	Message         pgtype.Text        `json:"message"`
+	ErrorMessage    pgtype.Text        `json:"error_message"`
+	SourceSnapshot  []byte             `json:"source_snapshot"`
+	Context         []byte             `json:"context"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+}
+
+type ScraperRunFailure struct {
+	ID           int64              `json:"id"`
+	ScraperRunID pgtype.Int8        `json:"scraper_run_id"`
+	ExternalKey  pgtype.Text        `json:"external_key"`
+	SourceUrl    pgtype.Text        `json:"source_url"`
+	ErrorCode    pgtype.Text        `json:"error_code"`
+	Message      string             `json:"message"`
+	Retryable    bool               `json:"retryable"`
+	Attempt      int16              `json:"attempt"`
+	Context      []byte             `json:"context"`
+	OccurredAt   pgtype.Timestamptz `json:"occurred_at"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
+type ScraperSource struct {
+	ID                  int64              `json:"id"`
+	Slug                string             `json:"slug"`
+	Name                string             `json:"name"`
+	Driver              string             `json:"driver"`
+	ContentType         string             `json:"content_type"`
+	BaseUrl             pgtype.Text        `json:"base_url"`
+	EndpointTemplate    pgtype.Text        `json:"endpoint_template"`
+	PaginationTemplate  pgtype.Text        `json:"pagination_template"`
+	HttpMethod          string             `json:"http_method"`
+	RequestHeaders      []byte             `json:"request_headers"`
+	RequestBodyTemplate pgtype.Text        `json:"request_body_template"`
+	Credentials         pgtype.Text        `json:"credentials"`
+	OutputServer        pgtype.Text        `json:"output_server"`
+	CursorType          string             `json:"cursor_type"`
+	DefaultCursorStart  pgtype.Text        `json:"default_cursor_start"`
+	DefaultCursorEnd    pgtype.Text        `json:"default_cursor_end"`
+	LastDetectedCursor  pgtype.Text        `json:"last_detected_cursor"`
+	ScheduleCron        pgtype.Text        `json:"schedule_cron"`
+	ScheduleTimezone    string             `json:"schedule_timezone"`
+	RateLimitPerMinute  pgtype.Int4        `json:"rate_limit_per_minute"`
+	TimeoutSeconds      int32              `json:"timeout_seconds"`
+	MaxAttempts         int16              `json:"max_attempts"`
+	Concurrency         int16              `json:"concurrency"`
+	ForceReplaceWish    bool               `json:"force_replace_wish"`
+	LanguageMode        pgtype.Text        `json:"language_mode"`
+	InsertStream        bool               `json:"insert_stream"`
+	InsertDownload      bool               `json:"insert_download"`
+	IsActive            bool               `json:"is_active"`
+	Config              []byte             `json:"config"`
+	LastRunAt           pgtype.Timestamptz `json:"last_run_at"`
+	LastSuccessAt       pgtype.Timestamptz `json:"last_success_at"`
+	LastFailureAt       pgtype.Timestamptz `json:"last_failure_at"`
+	CreatedAt           pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt           pgtype.Timestamptz `json:"updated_at"`
 }
 
 type SerieCast struct {
@@ -606,6 +958,7 @@ type SerieSeason struct {
 	Name         string             `json:"name"`
 	Overview     pgtype.Text        `json:"overview"`
 	PosterPath   pgtype.Text        `json:"poster_path"`
+	PosterPathTv pgtype.Text        `json:"poster_path_tv"`
 	AirDate      pgtype.Date        `json:"air_date"`
 	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
@@ -628,7 +981,9 @@ type Series struct {
 	FirstAirDate   pgtype.Date        `json:"first_air_date"`
 	EpisodeRunTime pgtype.Int2        `json:"episode_run_time"`
 	PosterPath     pgtype.Text        `json:"poster_path"`
+	PosterPathTv   pgtype.Text        `json:"poster_path_tv"`
 	BackdropPath   pgtype.Text        `json:"backdrop_path"`
+	LogoPath       pgtype.Text        `json:"logo_path"`
 	Certification  pgtype.Text        `json:"certification"`
 	VoteAverage    pgtype.Numeric     `json:"vote_average"`
 	VoteCount      int64              `json:"vote_count"`
@@ -641,6 +996,176 @@ type Series struct {
 	SearchVector   interface{}        `json:"search_vector"`
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
+type SharepointDrife struct {
+	ID            int64              `json:"id"`
+	ExternalID    string             `json:"external_id"`
+	SiteID        pgtype.Text        `json:"site_id"`
+	Name          string             `json:"name"`
+	VirtualFolder pgtype.Text        `json:"virtual_folder"`
+	DeltaLink     pgtype.Text        `json:"delta_link"`
+	IsActive      bool               `json:"is_active"`
+	LastSyncedAt  pgtype.Timestamptz `json:"last_synced_at"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+}
+
+type SharepointItem struct {
+	ID               int64              `json:"id"`
+	DriveID          int64              `json:"drive_id"`
+	ExternalID       string             `json:"external_id"`
+	ParentExternalID pgtype.Text        `json:"parent_external_id"`
+	Name             string             `json:"name"`
+	MimeType         pgtype.Text        `json:"mime_type"`
+	IsFolder         bool               `json:"is_folder"`
+	SizeBytes        int64              `json:"size_bytes"`
+	WebUrl           pgtype.Text        `json:"web_url"`
+	LastModifiedAt   pgtype.Timestamptz `json:"last_modified_at"`
+	IsDeleted        bool               `json:"is_deleted"`
+	SyncSession      pgtype.UUID        `json:"sync_session"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+}
+
+type SharepointMicrosoftToken struct {
+	ID              int64              `json:"id"`
+	Name            string             `json:"name"`
+	AccountEmail    pgtype.Text        `json:"account_email"`
+	TenantID        pgtype.Text        `json:"tenant_id"`
+	AccessToken     pgtype.Text        `json:"access_token"`
+	RefreshToken    pgtype.Text        `json:"refresh_token"`
+	Scopes          []byte             `json:"scopes"`
+	ExpiresAt       pgtype.Timestamptz `json:"expires_at"`
+	LastRefreshedAt pgtype.Timestamptz `json:"last_refreshed_at"`
+	RevokedAt       pgtype.Timestamptz `json:"revoked_at"`
+	IsActive        bool               `json:"is_active"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+}
+
+type SharepointSetting struct {
+	ID          int64              `json:"id"`
+	Key         string             `json:"key"`
+	GroupName   string             `json:"group_name"`
+	Value       string             `json:"value"`
+	Type        string             `json:"type"`
+	Description pgtype.Text        `json:"description"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type SharepointSyncRun struct {
+	ID               int64              `json:"id"`
+	DriveID          int64              `json:"drive_id"`
+	SyncSession      pgtype.UUID        `json:"sync_session"`
+	Status           string             `json:"status"`
+	StartedAt        pgtype.Timestamptz `json:"started_at"`
+	FinishedAt       pgtype.Timestamptz `json:"finished_at"`
+	FilesFound       int64              `json:"files_found"`
+	FoldersFound     int64              `json:"folders_found"`
+	ItemsCreated     int64              `json:"items_created"`
+	ItemsUpdated     int64              `json:"items_updated"`
+	ItemsDeactivated int64              `json:"items_deactivated"`
+	PagesProcessed   int32              `json:"pages_processed"`
+	ErrorMessage     pgtype.Text        `json:"error_message"`
+	Metadata         []byte             `json:"metadata"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+}
+
+type SharepointTransferLog struct {
+	ID          int64              `json:"id"`
+	ItemID      pgtype.Int8        `json:"item_id"`
+	RequestID   pgtype.UUID        `json:"request_id"`
+	BytesSent   int64              `json:"bytes_sent"`
+	OriginBytes int64              `json:"origin_bytes"`
+	CacheBytes  int64              `json:"cache_bytes"`
+	Action      string             `json:"action"`
+	CacheStatus pgtype.Text        `json:"cache_status"`
+	Ip          *netip.Addr        `json:"ip"`
+	Country     pgtype.Text        `json:"country"`
+	Metadata    []byte             `json:"metadata"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type ShopItem struct {
+	ID          int64              `json:"id"`
+	Name        string             `json:"name"`
+	Description pgtype.Text        `json:"description"`
+	Type        string             `json:"type"`
+	Collection  pgtype.Text        `json:"collection"`
+	Price       int64              `json:"price"`
+	MediaID     pgtype.Int8        `json:"media_id"`
+	Meta        []byte             `json:"meta"`
+	PreviewCss  pgtype.Text        `json:"preview_css"`
+	IsActive    bool               `json:"is_active"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Subscription struct {
+	ID               int64              `json:"id"`
+	UserID           int64              `json:"user_id"`
+	PlanID           pgtype.Int8        `json:"plan_id"`
+	Status           string             `json:"status"`
+	PlanKeySnapshot  pgtype.Text        `json:"plan_key_snapshot"`
+	PlanNameSnapshot pgtype.Text        `json:"plan_name_snapshot"`
+	CurrencyPaid     pgtype.Text        `json:"currency_paid"`
+	PricePaidCents   pgtype.Int8        `json:"price_paid_cents"`
+	StartsAt         pgtype.Timestamptz `json:"starts_at"`
+	RenewsAt         pgtype.Timestamptz `json:"renews_at"`
+	EndsAt           pgtype.Timestamptz `json:"ends_at"`
+	CanceledAt       pgtype.Timestamptz `json:"canceled_at"`
+	PaymentMethod    pgtype.Text        `json:"payment_method"`
+	ReferenceID      pgtype.Text        `json:"reference_id"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+}
+
+type TransactionCategory struct {
+	ID        int64              `json:"id"`
+	Name      string             `json:"name"`
+	Type      string             `json:"type"`
+	Color     pgtype.Text        `json:"color"`
+	Icon      pgtype.Text        `json:"icon"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+type TriviaQuestion struct {
+	ID            int64              `json:"id"`
+	Question      string             `json:"question"`
+	CorrectAnswer string             `json:"correct_answer"`
+	WrongAnswers  []byte             `json:"wrong_answers"`
+	Difficulty    string             `json:"difficulty"`
+	IsActive      bool               `json:"is_active"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+}
+
+type TriviaSession struct {
+	ID            int64              `json:"id"`
+	UserID        int64              `json:"user_id"`
+	Score         int32              `json:"score"`
+	Status        string             `json:"status"`
+	RewardedPrize pgtype.Text        `json:"rewarded_prize"`
+	StartedAt     pgtype.Timestamptz `json:"started_at"`
+	CompletedAt   pgtype.Timestamptz `json:"completed_at"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Tutorial struct {
+	ID        int64              `json:"id"`
+	Title     string             `json:"title"`
+	Content   string             `json:"content"`
+	VideoUrl  pgtype.Text        `json:"video_url"`
+	SortOrder int16              `json:"sort_order"`
+	IsActive  bool               `json:"is_active"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
 type User struct {
@@ -663,22 +1188,83 @@ type User struct {
 	DeletedAt         pgtype.Timestamptz `json:"deleted_at"`
 }
 
+type UserAchievement struct {
+	ID            int64              `json:"id"`
+	UserID        int64              `json:"user_id"`
+	AchievementID int64              `json:"achievement_id"`
+	UnlockedAt    pgtype.Timestamptz `json:"unlocked_at"`
+}
+
+type UserAdView struct {
+	ID           int64              `json:"id"`
+	UserID       int64              `json:"user_id"`
+	AdID         int64              `json:"ad_id"`
+	ViewsToday   int32              `json:"views_today"`
+	LastViewDate pgtype.Date        `json:"last_view_date"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
+type UserInventory struct {
+	ID                  int64              `json:"id"`
+	UserID              int64              `json:"user_id"`
+	ShopItemID          int64              `json:"shop_item_id"`
+	EquippedByProfileID pgtype.Int8        `json:"equipped_by_profile_id"`
+	PurchasedAt         pgtype.Timestamptz `json:"purchased_at"`
+}
+
 type UserRole struct {
 	UserID     int64              `json:"user_id"`
 	RoleID     int64              `json:"role_id"`
 	AssignedAt pgtype.Timestamptz `json:"assigned_at"`
 }
 
+type Vote struct {
+	ID          int64              `json:"id"`
+	UserID      int64              `json:"user_id"`
+	ContentType string             `json:"content_type"`
+	ContentID   int64              `json:"content_id"`
+	VoteType    string             `json:"vote_type"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+}
+
+type Wallet struct {
+	ID        int64              `json:"id"`
+	UserID    int64              `json:"user_id"`
+	Balance   int64              `json:"balance"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+type WalletTransaction struct {
+	ID          int64              `json:"id"`
+	WalletID    int64              `json:"wallet_id"`
+	Amount      int64              `json:"amount"`
+	Type        string             `json:"type"`
+	Description pgtype.Text        `json:"description"`
+	ReferenceID pgtype.Text        `json:"reference_id"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+}
+
+type WatchLater struct {
+	ID          int64              `json:"id"`
+	ProfileID   int64              `json:"profile_id"`
+	ContentType string             `json:"content_type"`
+	ContentID   int64              `json:"content_id"`
+	TmdbID      pgtype.Int8        `json:"tmdb_id"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
 type WatchProgress struct {
-	ID              int64              `json:"id"`
-	ProfileID       int64              `json:"profile_id"`
-	MovieID         pgtype.Int8        `json:"movie_id"`
-	EpisodeID       pgtype.Int8        `json:"episode_id"`
-	ProgressSeconds int32              `json:"progress_seconds"`
-	TotalSeconds    int32              `json:"total_seconds"`
-	Percentage      int16              `json:"percentage"`
-	Completed       bool               `json:"completed"`
-	LastWatchedAt   pgtype.Timestamptz `json:"last_watched_at"`
-	CreatedAt       pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+	ID            int64              `json:"id"`
+	ProfileID     int64              `json:"profile_id"`
+	ContentType   string             `json:"content_type"`
+	ContentID     int64              `json:"content_id"`
+	ProgressSec   int32              `json:"progress_sec"`
+	DurationSec   int32              `json:"duration_sec"`
+	IsCompleted   bool               `json:"is_completed"`
+	LastWatchedAt pgtype.Timestamptz `json:"last_watched_at"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 }

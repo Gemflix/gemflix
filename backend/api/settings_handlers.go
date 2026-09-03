@@ -17,7 +17,7 @@ func (s *Server) handleGetSettings(w http.ResponseWriter, r *http.Request) {
 	// Convertir la lista de (key, value) en un mapa JSON
 	settingsMap := make(map[string]string)
 	for _, setting := range settingsList {
-		settingsMap[setting.Key] = setting.Value
+		settingsMap[setting.Key] = string(setting.Value)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

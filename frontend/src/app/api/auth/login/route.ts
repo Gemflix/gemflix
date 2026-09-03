@@ -7,7 +7,7 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     const apiUrl = getApiUrl();
-    const goRes = await fetch(`${apiUrl}/api/auth/login`, {
+    const goRes = await fetch(`${apiUrl}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -33,7 +33,8 @@ export async function POST(request: Request) {
           httpOnly: true,
           path: "/",
           sameSite: "lax",
-          secure: false,
+          secure: process.env.NODE_ENV === "production",
+          domain: process.env.NODE_ENV === "production" ? ".gemflix.org" : undefined,
           maxAge: 60 * 60 * 24 * 7
         });
       }

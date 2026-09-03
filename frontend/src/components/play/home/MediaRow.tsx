@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Play } from 'lucide-react';
 
@@ -17,6 +18,8 @@ interface MediaRowProps {
 }
 
 export function MediaRow({ title, items, rowType = 'posters' }: MediaRowProps) {
+  const router = useRouter();
+
   if (!items || items.length === 0) return null;
 
   const isLandscape = rowType === 'episodes' || rowType === 'continue';
@@ -35,6 +38,7 @@ export function MediaRow({ title, items, rowType = 'posters' }: MediaRowProps) {
           {items.map((item, idx) => (
             <motion.div
               key={item.id + '-' + idx}
+              onClick={() => router.push(`/media/${item.slug}`)}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: idx * 0.05 }}
@@ -46,18 +50,21 @@ export function MediaRow({ title, items, rowType = 'posters' }: MediaRowProps) {
                     src={item.poster}
                     alt={item.title}
                     fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gray-900 flex items-center justify-center p-2 text-center text-xs text-gray-500">
-                    {item.title}
+                  <div className="w-full h-full bg-[#111] flex flex-col items-center justify-center p-4 text-center text-gray-500 border border-white/5">
+                    <div className="w-10 h-10 mb-2 rounded-full bg-white/5 flex items-center justify-center">
+                      <span className="text-xl">🎬</span>
+                    </div>
+                    <span className="text-xs font-medium line-clamp-3">{item.title}</span>
                   </div>
                 )}
                 
                 {/* Hover Overlay */}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <div className="w-12 h-12 rounded-full border-2 border-accent flex items-center justify-center bg-black/40">
-                    <Play className="w-6 h-6 fill-accent text-accent ml-1" />
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-xs">
+                  <div className="w-14 h-14 rounded-full border border-white/20 flex items-center justify-center bg-white/10 shadow-[0_0_20px_rgba(255,255,255,0.2)] transform scale-90 group-hover:scale-100 transition-all duration-300">
+                    <Play className="w-6 h-6 fill-white text-white ml-1 shadow-sm" />
                   </div>
                 </div>
               </div>

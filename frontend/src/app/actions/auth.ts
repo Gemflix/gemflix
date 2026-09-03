@@ -52,7 +52,7 @@ export async function loginAction(formData: FormData): Promise<{ url: string }> 
   const apiUrl = getApiUrl();
 
   // 2. Llamada segura de servidor a servidor hacia Go
-  const response = await fetch(`${apiUrl}/api/auth/login`, {
+  const response = await fetch(`${apiUrl}/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password, platform }),
@@ -106,7 +106,7 @@ export async function loginAction(formData: FormData): Promise<{ url: string }> 
   });
 
   // 6. Redirigir según el rol
-  return { url: isStaff ? "/admin" : "/play" };
+  return { url: isStaff ? "/dashboard" : "/play" };
 }
 
 export async function logoutAction() {
@@ -117,7 +117,7 @@ export async function logoutAction() {
   // Intentar invalidar el refresh token en el backend
   if (refreshToken) {
     try {
-      await fetch(`${apiUrl}/api/auth/logout`, {
+      await fetch(`${apiUrl}/auth/logout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refresh_token: refreshToken }),

@@ -11,7 +11,7 @@ async function getGlobalTheme(): Promise<ThemeConfig> {
 
   try {
     const apiUrl = getApiUrl();
-    const res = await fetch(`${apiUrl}/api/play/settings`, { 
+    const res = await fetch(`${apiUrl}/play/settings`, { 
       cache: "no-store" 
     });
     if (res.ok) {

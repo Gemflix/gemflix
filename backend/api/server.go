@@ -9,19 +9,22 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/redis/go-redis/v9"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // Server maneja las rutas de la API
 type Server struct {
 	db          *db.Queries
+	dbPool      *pgxpool.Pool
 	redisClient *redis.Client
 	router      chi.Router
 }
 
 // NewServer inicializa el servidor y el enrutador con Chi
-func NewServer(db *db.Queries, redisClient *redis.Client) *Server {
+func NewServer(queries *db.Queries, dbPool *pgxpool.Pool, redisClient *redis.Client) *Server {
 	s := &Server{
-		db:          db,
+		db:          queries,
+		dbPool:      dbPool,
 		redisClient: redisClient,
 		router:      chi.NewRouter(),
 	}
@@ -67,6 +70,7 @@ func (s *Server) routes() {
 		// Play (VOD Públicos y Protegidos)
 		r.Route("/play", func(r chi.Router) {
 			r.Get("/settings", s.handleGetSettings)
+			r.Get("/media/{slug}", s.handleGetMediaDetails)
 			r.Get("/home", s.handleGetVODHome) // Handles its own auth based on public_catalog setting
 			r.Get("/catalog/movies", s.HandleCatalogMovies)
 			r.Get("/catalog/series", s.HandleCatalogSeries)
@@ -92,10 +96,51 @@ func (s *Server) routes() {
 			r.Get("/billing/plans", s.HandleListActivePlans)
 		})
 
+		// Suscripciones y Facturación del Usuario
+		r.Route("/billing", func(r chi.Router) {
+			r.Use(s.AuthMiddlewareChi)
+			r.Post("/subscribe/{priceId}", s.handlePurchaseSubscription)
+		})
+
+		// Tienda e Inventario del Usuario
+		r.Route("/shop", func(r chi.Router) {
+			r.Use(s.AuthMiddlewareChi)
+			r.Post("/buy/{itemId}", s.handlePurchaseShopItem)
+			r.Get("/inventory", s.handleGetMyInventory)
+			r.Put("/inventory/{inventoryId}/equip", s.handleEquipShopItem)
+		})
+
+		// Códigos Promocionales
+		r.Route("/promo", func(r chi.Router) {
+			r.Use(s.AuthMiddlewareChi)
+			r.Post("/redeem", s.handleRedeemPromo)
+		})
+
+		// Referidos
+		r.Route("/referrals", func(r chi.Router) {
+			r.Use(s.AuthMiddlewareChi)
+			r.Post("/process", s.handleProcessReferral)
+		})
+
+		// Anuncios y Recompensas (Ads)
+		r.Route("/ads", func(r chi.Router) {
+			r.Use(s.AuthMiddlewareChi)
+			r.Get("/waterfall", s.handleGetWaterfall)
+			r.Post("/view", s.handleRecordAdView)
+		})
+
+		// Billetera del Usuario
+		r.Route("/wallet", func(r chi.Router) {
+			r.Use(s.AuthMiddlewareChi)
+			r.Get("/balance", s.handleGetWalletBalance)
+			r.Post("/deposit", s.handleDepositWallet)
+		})
+
 		// Admin (Protegidos con RBAC)
 		r.Route("/admin", func(r chi.Router) {
 			r.Use(s.AuthMiddlewareChi)
 			r.With(s.RequirePermissionChi("manage_movies")).Get("/stats", s.handleGetStats)
+			r.With(s.RequirePermissionChi("manage_movies")).Get("/metrics", s.handleGetMetrics)
 			r.With(s.RequirePermissionChi("manage_users")).Get("/users", s.handleGetUsers)
 			r.With(s.RequirePermissionChi("manage_users")).Get("/staff", s.handleGetStaff)
 			r.With(s.RequirePermissionChi("manage_users")).Post("/staff", s.handleCreateStaff)
@@ -108,6 +153,35 @@ func (s *Server) routes() {
 			r.With(s.RequirePermissionChi("manage_movies")).Put("/movies/{id}", s.handleUpdateMovie)
 			r.With(s.RequirePermissionChi("manage_movies")).Patch("/movies/{id}/toggle", s.handleToggleMediaAttr)
 			r.With(s.RequirePermissionChi("manage_movies")).Delete("/movies/{id}", s.handleDeleteMovie)
+
+			// Categorías (Categories)
+			r.With(s.RequirePermissionChi("manage_movies")).Get("/categories", s.handleGetCategories)
+			r.With(s.RequirePermissionChi("manage_movies")).Post("/categories", s.handleCreateCategory)
+			r.With(s.RequirePermissionChi("manage_movies")).Put("/categories/{id}", s.handleUpdateCategory)
+			r.With(s.RequirePermissionChi("manage_movies")).Delete("/categories/{id}", s.handleDeleteCategory)
+
+			// Planes (Billing)
+			r.With(s.RequirePermissionChi("manage_billing")).Get("/plans", s.handleGetPlans)
+			r.With(s.RequirePermissionChi("manage_billing")).Post("/plans", s.handleCreatePlan)
+			r.With(s.RequirePermissionChi("manage_billing")).Put("/plans/{id}", s.handleUpdatePlan)
+			r.With(s.RequirePermissionChi("manage_billing")).Delete("/plans/{id}", s.handleDeletePlan)
+
+			// Tienda (Shop)
+			r.With(s.RequirePermissionChi("manage_billing")).Get("/shop", s.handleGetShopItems)
+			r.With(s.RequirePermissionChi("manage_billing")).Post("/shop", s.handleCreateShopItem)
+			r.With(s.RequirePermissionChi("manage_billing")).Put("/shop/{id}", s.handleUpdateShopItem)
+			r.With(s.RequirePermissionChi("manage_billing")).Delete("/shop/{id}", s.handleDeleteShopItem)
+
+			// Códigos Promocionales (Promos)
+			r.With(s.RequirePermissionChi("manage_billing")).Get("/promos", s.handleListPromoCodes)
+			r.With(s.RequirePermissionChi("manage_billing")).Post("/promos", s.handleCreatePromoCode)
+			r.With(s.RequirePermissionChi("manage_billing")).Delete("/promos/{id}", s.handleDeletePromoCode)
+
+			// Anuncios (Ads)
+			r.With(s.RequirePermissionChi("manage_billing")).Get("/ads", s.handleListAdminAds)
+			r.With(s.RequirePermissionChi("manage_billing")).Post("/ads", s.handleCreateAd)
+			r.With(s.RequirePermissionChi("manage_billing")).Put("/ads/{id}", s.handleUpdateAd)
+			r.With(s.RequirePermissionChi("manage_billing")).Delete("/ads/{id}", s.handleDeleteAd)
 
 			r.With(s.RequirePermissionChi("manage_series")).Get("/series", s.handleGetAdminSeriesList)
 			r.With(s.RequirePermissionChi("manage_series")).Post("/series", s.handleCreateSerie)

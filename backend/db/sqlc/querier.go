@@ -17,14 +17,20 @@ type Querier interface {
 	CatalogFilterMovies(ctx context.Context, arg CatalogFilterMoviesParams) ([]CatalogFilterMoviesRow, error)
 	CatalogFilterSeries(ctx context.Context, arg CatalogFilterSeriesParams) ([]CatalogFilterSeriesRow, error)
 	CheckMovieSlugExists(ctx context.Context, slug string) (bool, error)
+	CheckPromoRedemption(ctx context.Context, arg CheckPromoRedemptionParams) (PromoRedemption, error)
 	CheckSerieSlugExists(ctx context.Context, slug string) (bool, error)
 	CheckTokenWithDevice(ctx context.Context, token string) (CheckTokenWithDeviceRow, error)
 	CheckUserPermission(ctx context.Context, arg CheckUserPermissionParams) (bool, error)
 	ClearRolePermissions(ctx context.Context, roleID int64) error
 	CompleteSyncRun(ctx context.Context, arg CompleteSyncRunParams) error
+	CountCategories(ctx context.Context) (int64, error)
+	CountReferralsByDevice(ctx context.Context, deviceID pgtype.Int8) (int64, error)
+	CountShopItems(ctx context.Context) (int64, error)
+	CreateAd(ctx context.Context, arg CreateAdParams) (Ad, error)
 	CreateAdminRole(ctx context.Context, arg CreateAdminRoleParams) (CreateAdminRoleRow, error)
 	CreateAdminStaff(ctx context.Context, arg CreateAdminStaffParams) (CreateAdminStaffRow, error)
 	CreateCast(ctx context.Context, arg CreateCastParams) (Cast, error)
+	CreateCategory(ctx context.Context, arg CreateCategoryParams) (Category, error)
 	CreateCollection(ctx context.Context, arg CreateCollectionParams) (Collection, error)
 	CreateCountry(ctx context.Context, arg CreateCountryParams) (Country, error)
 	CreateDriveSource(ctx context.Context, arg CreateDriveSourceParams) (DriveSource, error)
@@ -33,23 +39,31 @@ type Querier interface {
 	CreateJellyfinServer(ctx context.Context, arg CreateJellyfinServerParams) (JellyfinServer, error)
 	CreateJellyfinUser(ctx context.Context, arg CreateJellyfinUserParams) (JellyfinUser, error)
 	CreateMediaAudioTrack(ctx context.Context, arg CreateMediaAudioTrackParams) (MediaAudioTrack, error)
-	CreateMediaReport(ctx context.Context, arg CreateMediaReportParams) (MediaReport, error)
-	CreateMediaRequest(ctx context.Context, arg CreateMediaRequestParams) (MediaRequest, error)
+	CreateMediaReport(ctx context.Context, arg CreateMediaReportParams) (Report, error)
+	CreateMediaRequest(ctx context.Context, arg CreateMediaRequestParams) (ContentRequest, error)
 	CreateMediaSource(ctx context.Context, arg CreateMediaSourceParams) (MediaSource, error)
 	CreateMediaSubtitleTrack(ctx context.Context, arg CreateMediaSubtitleTrackParams) (MediaSubtitleTrack, error)
 	CreateMovie(ctx context.Context, arg CreateMovieParams) (Movie, error)
 	CreateNetwork(ctx context.Context, arg CreateNetworkParams) (Network, error)
 	CreatePersonalAccessToken(ctx context.Context, arg CreatePersonalAccessTokenParams) (PersonalAccessToken, error)
-	CreatePlan(ctx context.Context, arg CreatePlanParams) (BillingPlan, error)
-	CreatePlanPrice(ctx context.Context, arg CreatePlanPriceParams) (BillingPlanPrice, error)
+	CreatePlan(ctx context.Context, arg CreatePlanParams) (Plan, error)
+	CreatePlanPrice(ctx context.Context, arg CreatePlanPriceParams) (PlanPrice, error)
 	CreateProfile(ctx context.Context, arg CreateProfileParams) (Profile, error)
+	CreatePromoCode(ctx context.Context, arg CreatePromoCodeParams) (PromoCode, error)
+	CreateReferral(ctx context.Context, arg CreateReferralParams) (Referral, error)
 	CreateReplica(ctx context.Context, arg CreateReplicaParams) (DriveReplica, error)
 	CreateRole(ctx context.Context, arg CreateRoleParams) (Role, error)
 	CreateSerie(ctx context.Context, arg CreateSerieParams) (Series, error)
 	CreateServiceAccount(ctx context.Context, arg CreateServiceAccountParams) (DriveServiceAccount, error)
-	CreateSubscription(ctx context.Context, arg CreateSubscriptionParams) (BillingSubscription, error)
+	CreateShopItem(ctx context.Context, arg CreateShopItemParams) (ShopItem, error)
+	CreateSubscription(ctx context.Context, arg CreateSubscriptionParams) (Subscription, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	CreateUserInventoryItem(ctx context.Context, arg CreateUserInventoryItemParams) (UserInventory, error)
+	CreateWallet(ctx context.Context, userID int64) (Wallet, error)
+	CreateWalletTransaction(ctx context.Context, arg CreateWalletTransactionParams) (WalletTransaction, error)
+	DeleteAd(ctx context.Context, id int64) error
 	DeleteCast(ctx context.Context, id int64) error
+	DeleteCategory(ctx context.Context, id int64) error
 	DeleteCollection(ctx context.Context, id int64) error
 	DeleteCountry(ctx context.Context, id int64) error
 	DeleteGenre(ctx context.Context, id int64) error
@@ -63,13 +77,20 @@ type Querier interface {
 	DeleteMovieGenre(ctx context.Context, arg DeleteMovieGenreParams) error
 	DeleteMovieNetwork(ctx context.Context, arg DeleteMovieNetworkParams) error
 	DeleteNetwork(ctx context.Context, id int64) error
+	DeletePlan(ctx context.Context, id int64) error
+	DeletePlanPrices(ctx context.Context, planID int64) error
+	DeletePromoCode(ctx context.Context, id int64) error
 	DeleteReplica(ctx context.Context, id int64) error
 	DeleteSerie(ctx context.Context, id int64) error
 	DeleteSerieCast(ctx context.Context, arg DeleteSerieCastParams) error
 	DeleteSerieGenre(ctx context.Context, arg DeleteSerieGenreParams) error
 	DeleteSerieNetwork(ctx context.Context, arg DeleteSerieNetworkParams) error
+	DeleteShopItem(ctx context.Context, id int64) error
+	EquipShopItemToProfile(ctx context.Context, arg EquipShopItemToProfileParams) error
 	GetActiveServiceAccounts(ctx context.Context) ([]DriveServiceAccount, error)
-	GetActiveUserSubscriptions(ctx context.Context, userID pgtype.Int8) ([]GetActiveUserSubscriptionsRow, error)
+	GetActiveUserSubscriptions(ctx context.Context, userID int64) ([]GetActiveUserSubscriptionsRow, error)
+	GetAdByID(ctx context.Context, id int64) (Ad, error)
+	GetAdView(ctx context.Context, arg GetAdViewParams) (UserAdView, error)
 	GetAdminDevicesList(ctx context.Context) ([]GetAdminDevicesListRow, error)
 	GetAdminMoviesList(ctx context.Context) ([]GetAdminMoviesListRow, error)
 	GetAdminRoles(ctx context.Context) ([]GetAdminRolesRow, error)
@@ -77,9 +98,13 @@ type Querier interface {
 	GetAdminStaffList(ctx context.Context) ([]GetAdminStaffListRow, error)
 	GetAdminStats(ctx context.Context) (GetAdminStatsRow, error)
 	GetAdminUsersList(ctx context.Context) ([]GetAdminUsersListRow, error)
+	// Returns all active ads ordered by priority.
+	// We LEFT JOIN user_ad_views to check if the user has exceeded their daily limit.
+	GetAdsWaterfall(ctx context.Context, userID int64) ([]GetAdsWaterfallRow, error)
 	GetAllPermissions(ctx context.Context) ([]Permission, error)
-	GetAppSetting(ctx context.Context, key string) (string, error)
+	GetAppSetting(ctx context.Context, key string) ([]byte, error)
 	GetCastsPaginated(ctx context.Context, arg GetCastsPaginatedParams) ([]Cast, error)
+	GetCategory(ctx context.Context, id int64) (Category, error)
 	GetCollections(ctx context.Context) ([]Collection, error)
 	GetContinueWatching(ctx context.Context, profileID int64) ([]GetContinueWatchingRow, error)
 	GetCountriesPaginated(ctx context.Context, arg GetCountriesPaginatedParams) ([]Country, error)
@@ -99,7 +124,9 @@ type Querier interface {
 	GetMyListMovies(ctx context.Context, profileID int64) ([]GetMyListMoviesRow, error)
 	GetMyListSeries(ctx context.Context, profileID int64) ([]GetMyListSeriesRow, error)
 	GetNetworks(ctx context.Context) ([]Network, error)
-	GetPlanPrices(ctx context.Context, planID int64) ([]BillingPlanPrice, error)
+	GetPlan(ctx context.Context, id int64) (Plan, error)
+	GetPlanPrice(ctx context.Context, id int64) (PlanPrice, error)
+	GetPlanPrices(ctx context.Context, planID int64) ([]PlanPrice, error)
 	GetPlanRulesForServer(ctx context.Context, jellyfinServerID int64) ([]JellyfinPlanRule, error)
 	GetPlayActiveNetworks(ctx context.Context) ([]GetPlayActiveNetworksRow, error)
 	GetPlayRecentAnimes(ctx context.Context) ([]GetPlayRecentAnimesRow, error)
@@ -108,12 +135,20 @@ type Querier interface {
 	GetPlayTrendingAnimes(ctx context.Context) ([]GetPlayTrendingAnimesRow, error)
 	GetPlayTrendingMovies(ctx context.Context) ([]GetPlayTrendingMoviesRow, error)
 	GetPlayTrendingSeries(ctx context.Context) ([]GetPlayTrendingSeriesRow, error)
+	GetPromoCodeByCode(ctx context.Context, code string) (PromoCode, error)
+	GetPromoCodeByID(ctx context.Context, id int64) (PromoCode, error)
+	GetReferralByHash(ctx context.Context, attributionHash pgtype.Text) (Referral, error)
+	GetReferralByReferee(ctx context.Context, refereeUserID pgtype.Int8) (Referral, error)
 	GetSeasonEpisodes(ctx context.Context, seasonID int64) ([]GetSeasonEpisodesRow, error)
 	GetSerieFullDetails(ctx context.Context, id int64) (GetSerieFullDetailsRow, error)
 	GetSerieSeasons(ctx context.Context, serieID int64) ([]GetSerieSeasonsRow, error)
+	GetShopItem(ctx context.Context, id int64) (ShopItem, error)
 	GetUser(ctx context.Context, id int64) (User, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
+	GetUserInventory(ctx context.Context, userID int64) ([]GetUserInventoryRow, error)
 	GetUserRoles(ctx context.Context, userID int64) ([]Role, error)
+	GetWalletByUserID(ctx context.Context, userID int64) (Wallet, error)
+	IncrementPromoUses(ctx context.Context, id int64) error
 	InsertMediaImage(ctx context.Context, arg InsertMediaImageParams) (int64, error)
 	InsertMovieCast(ctx context.Context, arg InsertMovieCastParams) error
 	InsertMovieCollection(ctx context.Context, arg InsertMovieCollectionParams) error
@@ -125,19 +160,27 @@ type Querier interface {
 	InsertSerieGenre(ctx context.Context, arg InsertSerieGenreParams) error
 	InsertSerieNetwork(ctx context.Context, arg InsertSerieNetworkParams) error
 	ListActiveJellyfinServers(ctx context.Context) ([]JellyfinServer, error)
-	ListActivePlans(ctx context.Context) ([]BillingPlan, error)
+	ListActivePlans(ctx context.Context) ([]Plan, error)
+	ListAdminAds(ctx context.Context, arg ListAdminAdsParams) ([]Ad, error)
 	ListAppSettings(ctx context.Context) ([]ListAppSettingsRow, error)
+	ListCategories(ctx context.Context, arg ListCategoriesParams) ([]Category, error)
 	ListExploreCasts(ctx context.Context, arg ListExploreCastsParams) ([]ListExploreCastsRow, error)
 	ListExploreCollections(ctx context.Context, arg ListExploreCollectionsParams) ([]ListExploreCollectionsRow, error)
 	ListExploreCountries(ctx context.Context, arg ListExploreCountriesParams) ([]ListExploreCountriesRow, error)
 	ListExploreGenres(ctx context.Context) ([]ListExploreGenresRow, error)
 	ListExploreNetworks(ctx context.Context, arg ListExploreNetworksParams) ([]ListExploreNetworksRow, error)
+	ListPlans(ctx context.Context) ([]Plan, error)
+	ListPromoCodes(ctx context.Context, arg ListPromoCodesParams) ([]PromoCode, error)
 	ListReplicas(ctx context.Context) ([]ListReplicasRow, error)
 	ListRoles(ctx context.Context) ([]Role, error)
+	ListShopItems(ctx context.Context, arg ListShopItemsParams) ([]ShopItem, error)
 	ListTrendingMovies(ctx context.Context, arg ListTrendingMoviesParams) ([]Movie, error)
-	ListUserMediaReports(ctx context.Context, arg ListUserMediaReportsParams) ([]MediaReport, error)
-	ListUserMediaRequests(ctx context.Context, arg ListUserMediaRequestsParams) ([]MediaRequest, error)
+	ListUserMediaReports(ctx context.Context, arg ListUserMediaReportsParams) ([]Report, error)
+	ListUserMediaRequests(ctx context.Context, arg ListUserMediaRequestsParams) ([]ContentRequest, error)
 	ListUserProfiles(ctx context.Context, userID int64) ([]Profile, error)
+	ListUserReferrals(ctx context.Context, arg ListUserReferralsParams) ([]ListUserReferralsRow, error)
+	ListWalletTransactions(ctx context.Context, arg ListWalletTransactionsParams) ([]WalletTransaction, error)
+	RecordPromoRedemption(ctx context.Context, arg RecordPromoRedemptionParams) (PromoRedemption, error)
 	RegisterDevice(ctx context.Context, arg RegisterDeviceParams) (Device, error)
 	RevokeToken(ctx context.Context, token string) error
 	SearchCasts(ctx context.Context, dollar_1 pgtype.Text) ([]Cast, error)
@@ -153,10 +196,13 @@ type Querier interface {
 	ToggleEpisodeAttribute(ctx context.Context, arg ToggleEpisodeAttributeParams) error
 	ToggleMovieAttribute(ctx context.Context, arg ToggleMovieAttributeParams) error
 	ToggleSerieAttribute(ctx context.Context, arg ToggleSerieAttributeParams) error
+	UnequipShopItemTypeFromProfile(ctx context.Context, arg UnequipShopItemTypeFromProfileParams) error
 	UnsetMainMediaImages(ctx context.Context, arg UnsetMainMediaImagesParams) error
+	UpdateAd(ctx context.Context, arg UpdateAdParams) (Ad, error)
 	UpdateAppSetting(ctx context.Context, arg UpdateAppSettingParams) error
 	UpdateCast(ctx context.Context, arg UpdateCastParams) (Cast, error)
 	UpdateCastDetails(ctx context.Context, arg UpdateCastDetailsParams) error
+	UpdateCategory(ctx context.Context, arg UpdateCategoryParams) (Category, error)
 	UpdateCollection(ctx context.Context, arg UpdateCollectionParams) (Collection, error)
 	UpdateCollectionDetails(ctx context.Context, arg UpdateCollectionDetailsParams) error
 	UpdateCountry(ctx context.Context, arg UpdateCountryParams) (Country, error)
@@ -165,9 +211,15 @@ type Querier interface {
 	UpdateGenre(ctx context.Context, arg UpdateGenreParams) (Genre, error)
 	UpdateMovieBasic(ctx context.Context, arg UpdateMovieBasicParams) error
 	UpdateNetwork(ctx context.Context, arg UpdateNetworkParams) (Network, error)
+	UpdatePlan(ctx context.Context, arg UpdatePlanParams) (Plan, error)
+	UpdatePromoCode(ctx context.Context, arg UpdatePromoCodeParams) (PromoCode, error)
+	UpdateReferralStatus(ctx context.Context, arg UpdateReferralStatusParams) (Referral, error)
 	UpdateReplicaStatus(ctx context.Context, arg UpdateReplicaStatusParams) error
 	UpdateSerieBasic(ctx context.Context, arg UpdateSerieBasicParams) error
+	UpdateShopItem(ctx context.Context, arg UpdateShopItemParams) (ShopItem, error)
 	UpdateUserLogin(ctx context.Context, id int64) error
+	UpdateWalletBalance(ctx context.Context, arg UpdateWalletBalanceParams) (Wallet, error)
+	UpsertAdView(ctx context.Context, arg UpsertAdViewParams) (UserAdView, error)
 	// ==========================================
 	// CASTS
 	// ==========================================

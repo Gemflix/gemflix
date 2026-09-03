@@ -14,7 +14,7 @@ async function getCasts(searchParams: { [key: string]: string | string[] | undef
   if (searchParams.offset) params.set("offset", searchParams.offset as string);
   
   const apiUrl = getApiUrl();
-  const url = `${apiUrl}/api/play/explore/casts?${params.toString()}`;
+  const url = `${apiUrl}/play/explore/casts?${params.toString()}`;
   
   try {
     const res = await fetch(url, { cache: 'no-store' });

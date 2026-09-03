@@ -10,7 +10,7 @@ export const metadata = {
 
 async function getCountries() {
   const apiUrl = getApiUrl();
-  const url = `${apiUrl}/api/play/explore/countries?limit=100`;
+  const url = `${apiUrl}/play/explore/countries?limit=100`;
   
   try {
     const res = await fetch(url, { cache: 'no-store' });

@@ -117,11 +117,13 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 6. Guardar Refresh Token en Redis (7 días)
-	err = s.redisClient.Set(ctx, "refresh_token:"+refreshToken, user.ID, 7*24*time.Hour).Err()
-	if err != nil {
-		fmt.Printf("ERROR Guardando en Redis: %v\n", err)
-		http.Error(w, "Error de servidor (Redis)", http.StatusInternalServerError)
-		return
+	if s.redisClient != nil {
+		err = s.redisClient.Set(ctx, "refresh_token:"+refreshToken, user.ID, 7*24*time.Hour).Err()
+		if err != nil {
+			fmt.Printf("ERROR Guardando en Redis: %v\n", err)
+			http.Error(w, "Error de servidor (Redis)", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	fmt.Printf("Login Success: UserID=%d, Email=%s, Roles=%v\n", user.ID, user.Email, roleNames)

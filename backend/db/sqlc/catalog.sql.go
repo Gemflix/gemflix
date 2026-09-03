@@ -211,7 +211,7 @@ INSERT INTO movies (
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
 )
-RETURNING id, uuid, slug, tmdb_id, tvdb_id, imdb_id, is_type, original_name, title_lat, title_esp, title_eng, overview, trailer_key, release_date, runtime, poster_path, backdrop_path, certification, vote_average, vote_count, vote_gf, views, premiere, upcoming, premium, active, enable_stream, enable_download, enable_ads_unlock, search_vector, created_at, updated_at
+RETURNING id, uuid, slug, tmdb_id, tvdb_id, imdb_id, is_type, original_name, title_lat, title_esp, title_eng, overview, trailer_key, release_date, runtime, poster_path, poster_path_tv, backdrop_path, logo_path, certification, vote_average, vote_count, vote_gf, views, premiere, upcoming, premium, active, enable_stream, enable_download, enable_ads_unlock, search_vector, created_at, updated_at
 `
 
 type CreateMovieParams struct {
@@ -268,7 +268,9 @@ func (q *Queries) CreateMovie(ctx context.Context, arg CreateMovieParams) (Movie
 		&i.ReleaseDate,
 		&i.Runtime,
 		&i.PosterPath,
+		&i.PosterPathTv,
 		&i.BackdropPath,
+		&i.LogoPath,
 		&i.Certification,
 		&i.VoteAverage,
 		&i.VoteCount,
@@ -331,7 +333,7 @@ INSERT INTO series (
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
 )
-RETURNING id, uuid, slug, tmdb_id, tvdb_id, imdb_id, is_type, original_name, title_lat, title_esp, title_eng, overview, trailer_key, first_air_date, episode_run_time, poster_path, backdrop_path, certification, vote_average, vote_count, vote_gf, views, premiere, upcoming, premium, active, search_vector, created_at, updated_at
+RETURNING id, uuid, slug, tmdb_id, tvdb_id, imdb_id, is_type, original_name, title_lat, title_esp, title_eng, overview, trailer_key, first_air_date, episode_run_time, poster_path, poster_path_tv, backdrop_path, logo_path, certification, vote_average, vote_count, vote_gf, views, premiere, upcoming, premium, active, search_vector, created_at, updated_at
 `
 
 type CreateSerieParams struct {
@@ -388,7 +390,9 @@ func (q *Queries) CreateSerie(ctx context.Context, arg CreateSerieParams) (Serie
 		&i.FirstAirDate,
 		&i.EpisodeRunTime,
 		&i.PosterPath,
+		&i.PosterPathTv,
 		&i.BackdropPath,
+		&i.LogoPath,
 		&i.Certification,
 		&i.VoteAverage,
 		&i.VoteCount,
@@ -865,7 +869,7 @@ func (q *Queries) GetMediaSubtitleTracks(ctx context.Context, mediaSourceID int6
 }
 
 const getMovie = `-- name: GetMovie :one
-SELECT id, uuid, slug, tmdb_id, tvdb_id, imdb_id, is_type, original_name, title_lat, title_esp, title_eng, overview, trailer_key, release_date, runtime, poster_path, backdrop_path, certification, vote_average, vote_count, vote_gf, views, premiere, upcoming, premium, active, enable_stream, enable_download, enable_ads_unlock, search_vector, created_at, updated_at FROM movies
+SELECT id, uuid, slug, tmdb_id, tvdb_id, imdb_id, is_type, original_name, title_lat, title_esp, title_eng, overview, trailer_key, release_date, runtime, poster_path, poster_path_tv, backdrop_path, logo_path, certification, vote_average, vote_count, vote_gf, views, premiere, upcoming, premium, active, enable_stream, enable_download, enable_ads_unlock, search_vector, created_at, updated_at FROM movies
 WHERE id = $1 LIMIT 1
 `
 
@@ -889,7 +893,9 @@ func (q *Queries) GetMovie(ctx context.Context, id int64) (Movie, error) {
 		&i.ReleaseDate,
 		&i.Runtime,
 		&i.PosterPath,
+		&i.PosterPathTv,
 		&i.BackdropPath,
+		&i.LogoPath,
 		&i.Certification,
 		&i.VoteAverage,
 		&i.VoteCount,
@@ -1085,7 +1091,7 @@ func (q *Queries) GetSerieSeasons(ctx context.Context, serieID int64) ([]GetSeri
 }
 
 const listTrendingMovies = `-- name: ListTrendingMovies :many
-SELECT id, uuid, slug, tmdb_id, tvdb_id, imdb_id, is_type, original_name, title_lat, title_esp, title_eng, overview, trailer_key, release_date, runtime, poster_path, backdrop_path, certification, vote_average, vote_count, vote_gf, views, premiere, upcoming, premium, active, enable_stream, enable_download, enable_ads_unlock, search_vector, created_at, updated_at FROM movies
+SELECT id, uuid, slug, tmdb_id, tvdb_id, imdb_id, is_type, original_name, title_lat, title_esp, title_eng, overview, trailer_key, release_date, runtime, poster_path, poster_path_tv, backdrop_path, logo_path, certification, vote_average, vote_count, vote_gf, views, premiere, upcoming, premium, active, enable_stream, enable_download, enable_ads_unlock, search_vector, created_at, updated_at FROM movies
 WHERE active = TRUE
 ORDER BY views DESC NULLS LAST
 LIMIT $1 OFFSET $2
@@ -1122,7 +1128,9 @@ func (q *Queries) ListTrendingMovies(ctx context.Context, arg ListTrendingMovies
 			&i.ReleaseDate,
 			&i.Runtime,
 			&i.PosterPath,
+			&i.PosterPathTv,
 			&i.BackdropPath,
+			&i.LogoPath,
 			&i.Certification,
 			&i.VoteAverage,
 			&i.VoteCount,
@@ -1304,7 +1312,7 @@ func (q *Queries) SearchGenres(ctx context.Context, dollar_1 pgtype.Text) ([]Gen
 }
 
 const searchMovies = `-- name: SearchMovies :many
-SELECT id, uuid, slug, tmdb_id, tvdb_id, imdb_id, is_type, original_name, title_lat, title_esp, title_eng, overview, trailer_key, release_date, runtime, poster_path, backdrop_path, certification, vote_average, vote_count, vote_gf, views, premiere, upcoming, premium, active, enable_stream, enable_download, enable_ads_unlock, search_vector, created_at, updated_at FROM movies
+SELECT id, uuid, slug, tmdb_id, tvdb_id, imdb_id, is_type, original_name, title_lat, title_esp, title_eng, overview, trailer_key, release_date, runtime, poster_path, poster_path_tv, backdrop_path, logo_path, certification, vote_average, vote_count, vote_gf, views, premiere, upcoming, premium, active, enable_stream, enable_download, enable_ads_unlock, search_vector, created_at, updated_at FROM movies
 WHERE active = TRUE
   AND search_vector @@ plainto_tsquery('spanish', $1)
 ORDER BY ts_rank(search_vector, plainto_tsquery('spanish', $1)) DESC
@@ -1343,7 +1351,9 @@ func (q *Queries) SearchMovies(ctx context.Context, arg SearchMoviesParams) ([]M
 			&i.ReleaseDate,
 			&i.Runtime,
 			&i.PosterPath,
+			&i.PosterPathTv,
 			&i.BackdropPath,
+			&i.LogoPath,
 			&i.Certification,
 			&i.VoteAverage,
 			&i.VoteCount,
@@ -1407,7 +1417,7 @@ func (q *Queries) SearchNetworks(ctx context.Context, dollar_1 pgtype.Text) ([]N
 }
 
 const searchSeries = `-- name: SearchSeries :many
-SELECT id, uuid, slug, tmdb_id, tvdb_id, imdb_id, is_type, original_name, title_lat, title_esp, title_eng, overview, trailer_key, first_air_date, episode_run_time, poster_path, backdrop_path, certification, vote_average, vote_count, vote_gf, views, premiere, upcoming, premium, active, search_vector, created_at, updated_at FROM series
+SELECT id, uuid, slug, tmdb_id, tvdb_id, imdb_id, is_type, original_name, title_lat, title_esp, title_eng, overview, trailer_key, first_air_date, episode_run_time, poster_path, poster_path_tv, backdrop_path, logo_path, certification, vote_average, vote_count, vote_gf, views, premiere, upcoming, premium, active, search_vector, created_at, updated_at FROM series
 WHERE active = TRUE
   AND search_vector @@ plainto_tsquery('spanish', $1)
 ORDER BY ts_rank(search_vector, plainto_tsquery('spanish', $1)) DESC
@@ -1446,7 +1456,9 @@ func (q *Queries) SearchSeries(ctx context.Context, arg SearchSeriesParams) ([]S
 			&i.FirstAirDate,
 			&i.EpisodeRunTime,
 			&i.PosterPath,
+			&i.PosterPathTv,
 			&i.BackdropPath,
+			&i.LogoPath,
 			&i.Certification,
 			&i.VoteAverage,
 			&i.VoteCount,

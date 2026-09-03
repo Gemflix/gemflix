@@ -75,12 +75,14 @@ func main() {
 	fmt.Println("Conectando a Redis...")
 	redisClient := utils.NewRedisClient()
 	if err := redisClient.Ping(ctx).Err(); err != nil {
-		log.Fatalf("No se pudo conectar a Redis: %v", err)
+		log.Printf("Advertencia: No se pudo conectar a Redis (%v). Se continuará sin Redis.", err)
+		redisClient = nil
+	} else {
+		fmt.Println("✅ ¡Conectado exitosamente a Redis!")
 	}
-	fmt.Println("✅ ¡Conectado exitosamente a Redis!")
 
 	// Inicializar nuestro Servidor API con sus rutas
-	server := api.NewServer(queries, redisClient)
+	server := api.NewServer(queries, dbPool, redisClient)
 
 	if err := server.SyncPermissions(context.Background()); err != nil {
 		log.Printf("Advertencia: No se pudieron sincronizar los permisos: %v", err)

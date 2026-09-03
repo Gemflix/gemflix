@@ -60,7 +60,7 @@ export function CreateAccountModal({ onClose, onSuccess }: CreateAccountModalPro
         <div className="p-6 border-b border-surface-border flex justify-between items-center">
           <h2 className="text-xl font-bold text-white">Registrar Identidad Google</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
-            ✕
+            S"
           </button>
         </div>
         

@@ -1,25 +1,26 @@
 -- name: CreateMediaRequest :one
-INSERT INTO media_requests (
-    user_id, tmdb_id, title, media_type, notes
+INSERT INTO content_requests (
+    user_id, tmdb_id, title, notes
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, $4
 ) RETURNING *;
 
 -- name: ListUserMediaRequests :many
-SELECT * FROM media_requests
+SELECT * FROM content_requests
 WHERE user_id = $1
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3;
 
 -- name: CreateMediaReport :one
-INSERT INTO media_reports (
-    user_id, media_type, media_id, reason, details
+INSERT INTO reports (
+    user_id, content_type, content_id, reason, details
 ) VALUES (
     $1, $2, $3, $4, $5
 ) RETURNING *;
 
 -- name: ListUserMediaReports :many
-SELECT * FROM media_reports
+SELECT * FROM reports
 WHERE user_id = $1
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3;
+

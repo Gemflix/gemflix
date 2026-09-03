@@ -14,7 +14,7 @@ import (
 const getMovieFullDetails = `-- name: GetMovieFullDetails :one
 
 SELECT 
-    m.id, m.uuid, m.slug, m.tmdb_id, m.tvdb_id, m.imdb_id, m.is_type, m.original_name, m.title_lat, m.title_esp, m.title_eng, m.overview, m.trailer_key, m.release_date, m.runtime, m.poster_path, m.backdrop_path, m.certification, m.vote_average, m.vote_count, m.vote_gf, m.views, m.premiere, m.upcoming, m.premium, m.active, m.enable_stream, m.enable_download, m.enable_ads_unlock, m.search_vector, m.created_at, m.updated_at,
+    m.id, m.uuid, m.slug, m.tmdb_id, m.tvdb_id, m.imdb_id, m.is_type, m.original_name, m.title_lat, m.title_esp, m.title_eng, m.overview, m.trailer_key, m.release_date, m.runtime, m.poster_path, m.poster_path_tv, m.backdrop_path, m.logo_path, m.certification, m.vote_average, m.vote_count, m.vote_gf, m.views, m.premiere, m.upcoming, m.premium, m.active, m.enable_stream, m.enable_download, m.enable_ads_unlock, m.search_vector, m.created_at, m.updated_at,
     COALESCE(
         (SELECT jsonb_agg(jsonb_build_object('id', g.id, 'name', g.name_eng))
          FROM movie_genres mg JOIN genres g ON mg.genre_id = g.id
@@ -72,7 +72,9 @@ type GetMovieFullDetailsRow struct {
 	ReleaseDate     pgtype.Date        `json:"release_date"`
 	Runtime         pgtype.Int2        `json:"runtime"`
 	PosterPath      pgtype.Text        `json:"poster_path"`
+	PosterPathTv    pgtype.Text        `json:"poster_path_tv"`
 	BackdropPath    pgtype.Text        `json:"backdrop_path"`
+	LogoPath        pgtype.Text        `json:"logo_path"`
 	Certification   pgtype.Text        `json:"certification"`
 	VoteAverage     pgtype.Numeric     `json:"vote_average"`
 	VoteCount       int64              `json:"vote_count"`
@@ -121,7 +123,9 @@ func (q *Queries) GetMovieFullDetails(ctx context.Context, id int64) (GetMovieFu
 		&i.ReleaseDate,
 		&i.Runtime,
 		&i.PosterPath,
+		&i.PosterPathTv,
 		&i.BackdropPath,
+		&i.LogoPath,
 		&i.Certification,
 		&i.VoteAverage,
 		&i.VoteCount,
@@ -151,7 +155,7 @@ func (q *Queries) GetMovieFullDetails(ctx context.Context, id int64) (GetMovieFu
 
 const getSerieFullDetails = `-- name: GetSerieFullDetails :one
 SELECT 
-    s.id, s.uuid, s.slug, s.tmdb_id, s.tvdb_id, s.imdb_id, s.is_type, s.original_name, s.title_lat, s.title_esp, s.title_eng, s.overview, s.trailer_key, s.first_air_date, s.episode_run_time, s.poster_path, s.backdrop_path, s.certification, s.vote_average, s.vote_count, s.vote_gf, s.views, s.premiere, s.upcoming, s.premium, s.active, s.search_vector, s.created_at, s.updated_at,
+    s.id, s.uuid, s.slug, s.tmdb_id, s.tvdb_id, s.imdb_id, s.is_type, s.original_name, s.title_lat, s.title_esp, s.title_eng, s.overview, s.trailer_key, s.first_air_date, s.episode_run_time, s.poster_path, s.poster_path_tv, s.backdrop_path, s.logo_path, s.certification, s.vote_average, s.vote_count, s.vote_gf, s.views, s.premiere, s.upcoming, s.premium, s.active, s.search_vector, s.created_at, s.updated_at,
     COALESCE(
         (SELECT jsonb_agg(jsonb_build_object('id', g.id, 'name', g.name_eng))
          FROM serie_genres sg JOIN genres g ON sg.genre_id = g.id
@@ -203,7 +207,9 @@ type GetSerieFullDetailsRow struct {
 	FirstAirDate   pgtype.Date        `json:"first_air_date"`
 	EpisodeRunTime pgtype.Int2        `json:"episode_run_time"`
 	PosterPath     pgtype.Text        `json:"poster_path"`
+	PosterPathTv   pgtype.Text        `json:"poster_path_tv"`
 	BackdropPath   pgtype.Text        `json:"backdrop_path"`
+	LogoPath       pgtype.Text        `json:"logo_path"`
 	Certification  pgtype.Text        `json:"certification"`
 	VoteAverage    pgtype.Numeric     `json:"vote_average"`
 	VoteCount      int64              `json:"vote_count"`
@@ -245,7 +251,9 @@ func (q *Queries) GetSerieFullDetails(ctx context.Context, id int64) (GetSerieFu
 		&i.FirstAirDate,
 		&i.EpisodeRunTime,
 		&i.PosterPath,
+		&i.PosterPathTv,
 		&i.BackdropPath,
+		&i.LogoPath,
 		&i.Certification,
 		&i.VoteAverage,
 		&i.VoteCount,

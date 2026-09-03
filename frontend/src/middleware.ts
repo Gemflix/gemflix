@@ -13,7 +13,7 @@ export const config = {
   ],
 };
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const url = req.nextUrl;
   
   // Obtenemos el hostname de los headers (ej. admin.localhost:3000)
@@ -92,20 +92,50 @@ export function middleware(req: NextRequest) {
     }
 
     // Login y rutas API NO llevan prefijo /admin — mapean a las páginas raíz de Next.js
-    if (isLoginPage || isApiRoute) {
-      return NextResponse.rewrite(new URL(path, req.url));
+    // Si van a la raíz del panel admin, redirigir al dashboard
+    if (url.pathname === '/') {
+      return NextResponse.redirect(new URL('/dashboard', req.url));
     }
 
-    const cleanPath = path.startsWith('/admin') ? path.replace('/admin', '') || '/' : path;
-    return NextResponse.rewrite(new URL(`/admin${cleanPath === '/' ? '' : cleanPath}`, req.url));
+    return NextResponse.rewrite(new URL(path, req.url));
   }
   
   // Regla general para Play, Drive, Jellyfin: Si es Staff, expulsarlo a Admin.
-  if (currentHost.startsWith('play.') || currentHost.startsWith('drive.') || currentHost.startsWith('jellyfin.')) {
+  // NOTA: En localhost desactivamos la expulsión porque las cookies no se comparten entre subdominios y genera un bucle de login. En prod sí funciona.
+  const isDevelopment = process.env.NODE_ENV !== "production";
+  if (!isDevelopment && (currentHost.startsWith('play.') || currentHost.startsWith('drive.') || currentHost.startsWith('jellyfin.'))) {
     if (hasSession && isStaff) {
       return redirectToAdmin();
     }
   }
+
+  // --- FORZAR LOGIN GLOBAL ---
+  // Consultamos el backend interno para saber si public_catalog está habilitado
+  // (Este fetch es rápido porque es interno, pero en Vercel Edge requeriría una URL completa).
+  let publicCatalog = "true";
+  try {
+    const apiUrl = process.env.API_INTERNAL_URL || "http://127.0.0.1:8080";
+    const res = await fetch(`${apiUrl}/play/settings`, { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.public_catalog === "false") {
+         publicCatalog = "false";
+      }
+    }
+  } catch (err) {
+    // Si el backend cae, asumimos false por seguridad
+    console.error("[Middleware] Error fetching settings:", err);
+  }
+
+  // Si public_catalog está en false y no hay sesión, nadie puede acceder a play, drive o jellyfin
+  const isProtectedSubdomain = currentHost.startsWith('play.') || currentHost.startsWith('drive.') || currentHost.startsWith('jellyfin.');
+  
+  console.log(`[Middleware] Protected Subdomain: ${isProtectedSubdomain}, publicCatalog API says: ${publicCatalog}, hasSession: ${hasSession}`);
+
+  if (isProtectedSubdomain && publicCatalog === "false" && !hasSession && !url.pathname.startsWith('/login')) {
+    return NextResponse.redirect(new URL('/login', req.url));
+  }
+  // -----------------------------
 
   // Rutas específicas de subdominios
   if (currentHost.startsWith('play.')) {
@@ -120,18 +150,28 @@ export function middleware(req: NextRequest) {
     return NextResponse.rewrite(new URL(`/jellyfin${path === '/' ? '' : path}`, req.url));
   }
   
-  // Redirigir de forma automática si entran a /admin desde el dominio principal
-  if (url.pathname.startsWith('/admin')) {
-    const proto = req.headers.get('x-forwarded-proto') || (hostname.includes('localhost') ? 'http' : 'https');
-    const newPath = url.pathname.replace('/admin', '') || '/';
-    const newUrl = new URL(newPath, `${proto}://admin.${hostname}`);
-    return NextResponse.redirect(newUrl);
+  // Redirigir de forma automática si entran a una carpeta que es un subdominio (ej: /play o /admin)
+  const isReservedFolder = url.pathname.startsWith('/admin') || url.pathname.startsWith('/play') || url.pathname.startsWith('/drive') || url.pathname.startsWith('/jellyfin');
+  
+  if (isReservedFolder) {
+    const targetSubdomain = url.pathname.split('/')[1]; // extrae 'admin', 'play', etc
+    
+    // Si ya estamos en ese subdominio, le quitamos la carpeta para no tener play.localhost:3000/play
+    if (currentHost.startsWith(`${targetSubdomain}.`)) {
+      const newPath = url.pathname.replace(`/${targetSubdomain}`, '') || '/';
+      return NextResponse.redirect(new URL(newPath, req.url));
+    } else {
+      // Si estamos en el dominio principal o en otro lado, enviarlo al subdominio correcto
+      const newPath = url.pathname.replace(`/${targetSubdomain}`, '') || '/';
+      const newUrl = new URL(newPath, `${proto}://${targetSubdomain}.${baseDomain}${port}`);
+      return NextResponse.redirect(newUrl);
+    }
   }
 
   // Si están visitando la raíz del dominio principal gemflix.org (sin subdominio)
   if (currentHost === baseDomain) {
-    // Si tienen sesión y son staff, enviarlos al panel admin
-    if (hasSession && isStaff && url.pathname === '/') {
+    // Si tienen sesión y son staff, enviarlos al panel admin (En localhost lo omitimos por las cookies)
+    if (hasSession && isStaff && url.pathname === '/' && !isDevelopment) {
       return redirectToAdmin();
     }
     

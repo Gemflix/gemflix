@@ -12,35 +12,35 @@ import (
 )
 
 const createMediaReport = `-- name: CreateMediaReport :one
-INSERT INTO media_reports (
-    user_id, media_type, media_id, reason, details
+INSERT INTO reports (
+    user_id, content_type, content_id, reason, details
 ) VALUES (
     $1, $2, $3, $4, $5
-) RETURNING id, user_id, media_type, media_id, reason, details, status, created_at, updated_at
+) RETURNING id, user_id, content_type, content_id, reason, details, status, created_at, updated_at
 `
 
 type CreateMediaReportParams struct {
-	UserID    int64       `json:"user_id"`
-	MediaType string      `json:"media_type"`
-	MediaID   int64       `json:"media_id"`
-	Reason    string      `json:"reason"`
-	Details   pgtype.Text `json:"details"`
+	UserID      int64       `json:"user_id"`
+	ContentType string      `json:"content_type"`
+	ContentID   int64       `json:"content_id"`
+	Reason      string      `json:"reason"`
+	Details     pgtype.Text `json:"details"`
 }
 
-func (q *Queries) CreateMediaReport(ctx context.Context, arg CreateMediaReportParams) (MediaReport, error) {
+func (q *Queries) CreateMediaReport(ctx context.Context, arg CreateMediaReportParams) (Report, error) {
 	row := q.db.QueryRow(ctx, createMediaReport,
 		arg.UserID,
-		arg.MediaType,
-		arg.MediaID,
+		arg.ContentType,
+		arg.ContentID,
 		arg.Reason,
 		arg.Details,
 	)
-	var i MediaReport
+	var i Report
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
-		&i.MediaType,
-		&i.MediaID,
+		&i.ContentType,
+		&i.ContentID,
 		&i.Reason,
 		&i.Details,
 		&i.Status,
@@ -51,36 +51,33 @@ func (q *Queries) CreateMediaReport(ctx context.Context, arg CreateMediaReportPa
 }
 
 const createMediaRequest = `-- name: CreateMediaRequest :one
-INSERT INTO media_requests (
-    user_id, tmdb_id, title, media_type, notes
+INSERT INTO content_requests (
+    user_id, tmdb_id, title, notes
 ) VALUES (
-    $1, $2, $3, $4, $5
-) RETURNING id, user_id, tmdb_id, title, media_type, status, notes, created_at, updated_at
+    $1, $2, $3, $4
+) RETURNING id, user_id, title, tmdb_id, status, notes, created_at, updated_at
 `
 
 type CreateMediaRequestParams struct {
-	UserID    int64       `json:"user_id"`
-	TmdbID    pgtype.Int4 `json:"tmdb_id"`
-	Title     string      `json:"title"`
-	MediaType string      `json:"media_type"`
-	Notes     pgtype.Text `json:"notes"`
+	UserID int64       `json:"user_id"`
+	TmdbID pgtype.Int8 `json:"tmdb_id"`
+	Title  string      `json:"title"`
+	Notes  pgtype.Text `json:"notes"`
 }
 
-func (q *Queries) CreateMediaRequest(ctx context.Context, arg CreateMediaRequestParams) (MediaRequest, error) {
+func (q *Queries) CreateMediaRequest(ctx context.Context, arg CreateMediaRequestParams) (ContentRequest, error) {
 	row := q.db.QueryRow(ctx, createMediaRequest,
 		arg.UserID,
 		arg.TmdbID,
 		arg.Title,
-		arg.MediaType,
 		arg.Notes,
 	)
-	var i MediaRequest
+	var i ContentRequest
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,
-		&i.TmdbID,
 		&i.Title,
-		&i.MediaType,
+		&i.TmdbID,
 		&i.Status,
 		&i.Notes,
 		&i.CreatedAt,
@@ -90,7 +87,7 @@ func (q *Queries) CreateMediaRequest(ctx context.Context, arg CreateMediaRequest
 }
 
 const listUserMediaReports = `-- name: ListUserMediaReports :many
-SELECT id, user_id, media_type, media_id, reason, details, status, created_at, updated_at FROM media_reports
+SELECT id, user_id, content_type, content_id, reason, details, status, created_at, updated_at FROM reports
 WHERE user_id = $1
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3
@@ -102,20 +99,20 @@ type ListUserMediaReportsParams struct {
 	Offset int32 `json:"offset"`
 }
 
-func (q *Queries) ListUserMediaReports(ctx context.Context, arg ListUserMediaReportsParams) ([]MediaReport, error) {
+func (q *Queries) ListUserMediaReports(ctx context.Context, arg ListUserMediaReportsParams) ([]Report, error) {
 	rows, err := q.db.Query(ctx, listUserMediaReports, arg.UserID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []MediaReport
+	var items []Report
 	for rows.Next() {
-		var i MediaReport
+		var i Report
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
-			&i.MediaType,
-			&i.MediaID,
+			&i.ContentType,
+			&i.ContentID,
 			&i.Reason,
 			&i.Details,
 			&i.Status,
@@ -133,7 +130,7 @@ func (q *Queries) ListUserMediaReports(ctx context.Context, arg ListUserMediaRep
 }
 
 const listUserMediaRequests = `-- name: ListUserMediaRequests :many
-SELECT id, user_id, tmdb_id, title, media_type, status, notes, created_at, updated_at FROM media_requests
+SELECT id, user_id, title, tmdb_id, status, notes, created_at, updated_at FROM content_requests
 WHERE user_id = $1
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3
@@ -145,21 +142,20 @@ type ListUserMediaRequestsParams struct {
 	Offset int32 `json:"offset"`
 }
 
-func (q *Queries) ListUserMediaRequests(ctx context.Context, arg ListUserMediaRequestsParams) ([]MediaRequest, error) {
+func (q *Queries) ListUserMediaRequests(ctx context.Context, arg ListUserMediaRequestsParams) ([]ContentRequest, error) {
 	rows, err := q.db.Query(ctx, listUserMediaRequests, arg.UserID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []MediaRequest
+	var items []ContentRequest
 	for rows.Next() {
-		var i MediaRequest
+		var i ContentRequest
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
-			&i.TmdbID,
 			&i.Title,
-			&i.MediaType,
+			&i.TmdbID,
 			&i.Status,
 			&i.Notes,
 			&i.CreatedAt,

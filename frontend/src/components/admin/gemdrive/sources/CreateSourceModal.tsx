@@ -60,7 +60,7 @@ export function CreateSourceModal({ accounts, onClose, onSuccess }: CreateSource
         <div className="p-6 border-b border-surface-border flex justify-between items-center">
           <h2 className="text-xl font-bold text-white">Registrar Fuente Google Drive</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
-            ✕
+            S"
           </button>
         </div>
         
@@ -98,9 +98,9 @@ export function CreateSourceModal({ accounts, onClose, onSuccess }: CreateSource
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-300">Tipo de Origen</label>
               <select value={driveType} onChange={e => setDriveType(e.target.value)} className="w-full bg-[#1a1c23] border border-white/10 rounded-lg p-2.5 text-white focus:outline-hidden focus:border-accent">
-                <option value="shared_folder">Tipo 1 — Carpeta Compartida externa (Solo lectura normal)</option>
-                <option value="external_team_drive">Tipo 2 — Shared Drive externo (Requiere Shared Drive ID)</option>
-                <option value="managed_team_drive">Tipo 3 — Shared Drive administrado (Propiedad del sistema)</option>
+                <option value="shared_folder">Tipo 1  Carpeta Compartida externa (Solo lectura normal)</option>
+                <option value="external_team_drive">Tipo 2  Shared Drive externo (Requiere Shared Drive ID)</option>
+                <option value="managed_team_drive">Tipo 3  Shared Drive administrado (Propiedad del sistema)</option>
               </select>
               <p className="text-xs text-gray-500">Es crítico seleccionar el correcto, esto determina si se usa `corpora=drive` y el nivel de permisos que se asume.</p>
             </div>
@@ -131,9 +131,9 @@ export function CreateSourceModal({ accounts, onClose, onSuccess }: CreateSource
                 <RefreshCw size={14} className="text-accent" /> Comportamiento (Policy)
               </label>
               <select value={syncMode} onChange={e => setSyncMode(e.target.value)} className="w-full bg-[#1a1c23] border border-white/10 rounded-lg p-2.5 text-white focus:outline-hidden focus:border-accent">
-                <option value="full">Full — Reconstrucción autoritativa completa (Seguro pero lento)</option>
-                <option value="delta">Delta seguro — Changes API y refresco solo al haber cambios detectados (Recomendado)</option>
-                <option value="append">Append — Agrega o actualiza metadatos pero nunca desactiva los ausentes</option>
+                <option value="full">Full  Reconstrucción autoritativa completa (Seguro pero lento)</option>
+                <option value="delta">Delta seguro  Changes API y refresco solo al haber cambios detectados (Recomendado)</option>
+                <option value="append">Append  Agrega o actualiza metadatos pero nunca desactiva los ausentes</option>
               </select>
             </div>
           </div>

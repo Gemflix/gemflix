@@ -54,7 +54,7 @@ async function proxyToBackend(
   const queryString = url.search;
 
   const apiUrl = getApiUrl();
-  const backendUrl = `${apiUrl}/api/admin/${pathStr}${queryString}`;
+  const backendUrl = `${apiUrl}/admin/${pathStr}${queryString}`;
 
   const headers: HeadersInit = {
     "Authorization": `Bearer ${accessToken}`,

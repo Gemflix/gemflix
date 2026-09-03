@@ -13,9 +13,9 @@ const getAppSetting = `-- name: GetAppSetting :one
 SELECT value FROM app_settings WHERE key = $1 LIMIT 1
 `
 
-func (q *Queries) GetAppSetting(ctx context.Context, key string) (string, error) {
+func (q *Queries) GetAppSetting(ctx context.Context, key string) ([]byte, error) {
 	row := q.db.QueryRow(ctx, getAppSetting, key)
-	var value string
+	var value []byte
 	err := row.Scan(&value)
 	return value, err
 }
@@ -26,7 +26,7 @@ SELECT key, value FROM app_settings
 
 type ListAppSettingsRow struct {
 	Key   string `json:"key"`
-	Value string `json:"value"`
+	Value []byte `json:"value"`
 }
 
 func (q *Queries) ListAppSettings(ctx context.Context) ([]ListAppSettingsRow, error) {
@@ -57,7 +57,7 @@ ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
 
 type UpdateAppSettingParams struct {
 	Key   string `json:"key"`
-	Value string `json:"value"`
+	Value []byte `json:"value"`
 }
 
 func (q *Queries) UpdateAppSetting(ctx context.Context, arg UpdateAppSettingParams) error {

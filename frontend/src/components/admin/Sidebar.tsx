@@ -20,7 +20,14 @@ import {
   ChevronsRight,
   Tv,
   ShieldAlert,
-  ShieldPlus
+  ShieldPlus,
+  Bot,
+  ShoppingCart,
+  Gamepad2,
+  BarChart,
+  Download,
+  CreditCard,
+  Code
 } from "lucide-react";
 
 interface SidebarProps {
@@ -34,14 +41,20 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
   const [activeApp, setActiveApp] = useState(() => {
     if (pathname.startsWith("/admin/gemflix")) return "gemflix";
     if (pathname.startsWith("/admin/gemdrive")) return "gemdrive";
+    if (pathname.startsWith("/admin/gemautomator")) return "gemautomator";
     if (pathname.startsWith("/admin/jellyfin")) return "jellyfin";
     return "global";
   });
-  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({ "Catálogo": true });
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({ 
+    "Catálogo": true,
+    "Monetización y Tienda": true,
+    "Gamificación": true
+  });
 
   useEffect(() => {
     if (pathname.startsWith("/admin/gemflix")) setActiveApp("gemflix");
     else if (pathname.startsWith("/admin/gemdrive")) setActiveApp("gemdrive");
+    else if (pathname.startsWith("/admin/gemautomator")) setActiveApp("gemautomator");
     else if (pathname.startsWith("/admin/jellyfin")) setActiveApp("jellyfin");
     else setActiveApp("global");
   }, [pathname]);
@@ -54,6 +67,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
     { id: "global", name: "Panel Global", icon: Globe, color: "from-blue-400 to-indigo-600" },
     { id: "gemflix", name: "Gemflix", icon: Film, color: "from-orange-400 to-red-600" },
     { id: "gemdrive", name: "GemDrive", icon: HardDrive, color: "from-teal-400 to-emerald-600" },
+    { id: "gemautomator", name: "GemAutomator", icon: Bot, color: "from-yellow-400 to-orange-600" },
     { id: "jellyfin", name: "Jellyfin", icon: PlayCircle, color: "from-purple-400 to-fuchsia-600" },
   ];
 
@@ -67,16 +81,20 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
             name: "Catálogo", 
             icon: Film, 
             subItems: [
-              { name: "Películas", href: "/admin/gemflix/movies" },
-              { name: "Series", href: "/admin/gemflix/series" },
-              { name: "Colecciones", href: "/admin/gemflix/collections" },
-              { name: "Redes (Plataformas)", href: "/admin/gemflix/networks" },
-              { name: "Géneros", href: "/admin/gemflix/genres" },
-              { name: "Reparto (Actores)", href: "/admin/gemflix/casts" },
-              { name: "Países", href: "/admin/gemflix/countries" }
+              { name: "Películas", href: "/gemflix/movies" },
+              { name: "Series", href: "/gemflix/series" },
+              { name: "Colecciones", href: "/gemflix/collections" },
+              { name: "Redes (Plataformas)", href: "/gemflix/networks" },
+              { name: "Géneros", href: "/gemflix/genres" },
+              { name: "Reparto (Actores)", href: "/gemflix/casts" },
+              { name: "Países", href: "/gemflix/countries" },
+              { name: "Categorías", href: "/gemflix/categories" },
+              { name: "Canales TV", href: "/gemflix/live-tvs" },
+              { name: "Listas IPTV", href: "/gemflix/iptv-playlists" },
+              { name: "Eventos en Vivo", href: "/gemflix/event-providers" }
             ] 
           },
-          { name: "Servidores", href: "/admin/gemflix/servers", icon: HardDrive },
+          { name: "Servidores", href: "/gemflix/servers", icon: HardDrive },
         ];
       case "gemdrive":
         return [
@@ -84,30 +102,64 @@ export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
             name: "Infraestructura Drive TI", 
             icon: HardDrive, 
             subItems: [
-              { name: "Cuentas de Servicio", href: "/admin/gemdrive/accounts" },
-              { name: "Cuotas y Límites", href: "/admin/gemdrive/quotas" },
-              { name: "Fuentes (Catálogo)", href: "/admin/gemdrive/sources" },
-              { name: "GemReplicas (Targets)", href: "/admin/gemdrive/replicas" },
-              { name: "Archivos (Items)", href: "/admin/gemdrive/files" },
-              { name: "Historial Sync (Monitor)", href: "/admin/gemdrive/monitor" },
+              { name: "Cuentas de Servicio", href: "/gemdrive/accounts" },
+              { name: "Sitios SharePoint", href: "/gemdrive/sharepoint" },
+              { name: "Cuotas y Límites", href: "/gemdrive/quotas" },
+              { name: "Fuentes Base", href: "/gemdrive/sources" },
+              { name: "GemReplicas (Backups)", href: "/gemdrive/replicas" },
+              { name: "Archivos (Items)", href: "/gemdrive/files" },
+              { name: "Historial Sync (Monitor)", href: "/gemdrive/monitor" },
             ] 
           },
         ];
+      case "gemautomator":
+        return [
+          { name: "Scrapers Internos", href: "/gemautomator/internal", icon: Bot },
+          { name: "API de Scrapers", href: "/gemautomator/api", icon: Code },
+          { name: "Historial y Errores", href: "/gemautomator/logs", icon: ShieldAlert },
+        ];
       case "jellyfin":
         return [
-          { name: "Sincronización", href: "/admin/jellyfin/sync", icon: PlayCircle },
-          { name: "Nodos", href: "/admin/jellyfin/nodes", icon: MonitorPlay },
+          { name: "Sincronización (Sync)", href: "/jellyfin/sync", icon: PlayCircle },
+          { name: "Nodos (Servidores)", href: "/jellyfin/nodes", icon: MonitorPlay },
+          { name: "Usuarios", href: "/jellyfin/users", icon: Users },
+          { name: "Librerías", href: "/jellyfin/libraries", icon: Film },
+          { name: "Sesiones Activas", href: "/jellyfin/sessions", icon: Tv },
+          { name: "Tareas Programadas", href: "/jellyfin/tasks", icon: Settings },
         ];
       default:
         // global
         return [
-          { name: "Dashboard", href: "/", icon: LayoutDashboard }, // Dashboard es "/" en admin.localhost
-          { name: "Usuarios", href: "/admin/users", icon: Users },
-          { name: "Staff", href: "/admin/staff", icon: ShieldAlert },
-          { name: "Roles y Permisos", href: "/admin/roles", icon: ShieldPlus },
-          { name: "Dispositivos", href: "/admin/devices", icon: MonitorPlay },
-          { name: "Configuración", href: "/admin/settings", icon: Settings },
-          { name: "Temas (Play)", href: "/admin/settings/theme", icon: Palette },
+          { name: "Dashboard Estadístico", href: "/dashboard", icon: LayoutDashboard },
+          { name: "Métricas por País", href: "/metrics", icon: BarChart },
+          { name: "Usuarios", href: "/users", icon: Users },
+          { name: "Dispositivos Activos", href: "/devices", icon: MonitorPlay },
+          { 
+            name: "Monetización y Tienda", 
+            icon: ShoppingCart, 
+            subItems: [
+              { name: "Planes VIP", href: "/monetization/plans" },
+              { name: "Transacciones", href: "/monetization/transactions" },
+              { name: "Rotador de Ads", href: "/monetization/ads" },
+              { name: "Códigos Promo", href: "/monetization/promos" },
+              { name: "Tienda (Avatares)", href: "/monetization/shop" }
+            ] 
+          },
+          { 
+            name: "Gamificación", 
+            icon: Gamepad2, 
+            subItems: [
+              { name: "Arcade (Minijuegos)", href: "/gamification/arcade" },
+              { name: "Premios de Ruleta", href: "/gamification/roulette" },
+              { name: "Recompensas", href: "/gamification/rewards" }
+            ] 
+          },
+          { name: "Tutoriales Globales", href: "/tutorials", icon: Tv },
+          { name: "Gestor de Descargas", href: "/downloads", icon: Download },
+          { name: "Ajustes de Sistema", href: "/settings", icon: Settings },
+          { name: "Ajustes de Pagos (Crypto)", href: "/settings/payments", icon: CreditCard },
+          { name: "Temas (Play)", href: "/settings/theme", icon: Palette },
+          { name: "Staff (Roles)", href: "/roles", icon: ShieldAlert },
         ];
     }
   };

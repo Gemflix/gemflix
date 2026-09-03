@@ -1,1 +1,0 @@
-ALTER TABLE media_sources ADD COLUMN type VARCHAR(32) NOT NULL DEFAULT 'directo';

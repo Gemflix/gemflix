@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"reflect"
 	"strings"
@@ -31,7 +32,7 @@ func (s *Server) handleGetVODHome(w http.ResponseWriter, r *http.Request) {
 	}
 
 	setting, err := s.db.GetAppSetting(ctx, "public_catalog")
-	isPublic := (err == nil && setting == "true")
+	isPublic := (err == nil && string(setting) == "true")
 
 	var activeProfileID int64
 	if !isPublic {
@@ -63,6 +64,9 @@ func (s *Server) handleGetVODHome(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	settingUseSlugs, err := s.db.GetAppSetting(ctx, "use_slugs")
+	useSlugs := (err == nil && string(settingUseSlugs) == "true")
+	
 	defaultPoster := ""
 
 	mapItems := func(items interface{}) []map[string]interface{} {
@@ -76,7 +80,26 @@ func (s *Server) handleGetVODHome(w http.ResponseWriter, r *http.Request) {
 
 			id := reflect.ValueOf(item).FieldByName("ID").Int()
 			title := reflect.ValueOf(item).FieldByName("Title").String()
-			slug := reflect.ValueOf(item).FieldByName("Slug").String()
+			
+			// Si no usa slugs (modo bunker), enviamos el UUID stringificado en el campo slug.
+			var slug string
+			if !useSlugs {
+				uuidField := reflect.ValueOf(item).FieldByName("Uuid")
+				if uuidField.IsValid() {
+				    // Convert pgtype.UUID Bytes [16]byte array to standard UUID string format
+				    bytes := uuidField.FieldByName("Bytes").Interface().([16]byte)
+					// Formato: 8-4-4-4-12 (hex)
+					slug = fmt.Sprintf("%x-%x-%x-%x-%x", bytes[0:4], bytes[4:6], bytes[6:8], bytes[8:10], bytes[10:16])
+				}
+			}
+			
+			// Fallback o si useSlugs es true
+			if slug == "" || useSlugs {
+			    slugField := reflect.ValueOf(item).FieldByName("Slug")
+			    if slugField.IsValid() {
+			        slug = slugField.String()
+			    }
+			}
 
 			posterField := reflect.ValueOf(item).FieldByName("PosterPath")
 			poster := defaultPoster
@@ -108,8 +131,14 @@ func (s *Server) handleGetVODHome(w http.ResponseWriter, r *http.Request) {
 		recent, _ := s.db.GetPlayRecentSeries(ctx)
 
 		if len(trending) > 0 {
+		    slug := trending[0].Slug
+		    if !useSlugs && trending[0].Uuid.Valid {
+		        bytes := trending[0].Uuid.Bytes
+		        slug = fmt.Sprintf("%x-%x-%x-%x-%x", bytes[0:4], bytes[4:6], bytes[6:8], bytes[8:10], bytes[10:16])
+		    }
 			hero = map[string]interface{}{
 				"title":    trending[0].Title,
+				"slug":     slug,
 				"overview": trending[0].Overview.String,
 				"backdrop": tmdbImage(trending[0].BackdropPath.String, "original"),
 				"poster":   tmdbImage(trending[0].PosterPath.String, "w500"),
@@ -135,8 +164,14 @@ func (s *Server) handleGetVODHome(w http.ResponseWriter, r *http.Request) {
 		recent, _ := s.db.GetPlayRecentAnimes(ctx)
 
 		if len(trending) > 0 {
+		    slug := trending[0].Slug
+		    if !useSlugs && trending[0].Uuid.Valid {
+		        bytes := trending[0].Uuid.Bytes
+		        slug = fmt.Sprintf("%x-%x-%x-%x-%x", bytes[0:4], bytes[4:6], bytes[6:8], bytes[8:10], bytes[10:16])
+		    }
 			hero = map[string]interface{}{
 				"title":    trending[0].Title,
+				"slug":     slug,
 				"overview": trending[0].Overview.String,
 				"backdrop": tmdbImage(trending[0].BackdropPath.String, "original"),
 				"poster":   tmdbImage(trending[0].PosterPath.String, "w500"),
@@ -150,8 +185,14 @@ func (s *Server) handleGetVODHome(w http.ResponseWriter, r *http.Request) {
 		recent, _ := s.db.GetPlayRecentMovies(ctx)
 
 		if len(trending) > 0 {
+		    slug := trending[0].Slug
+		    if !useSlugs && trending[0].Uuid.Valid {
+		        bytes := trending[0].Uuid.Bytes
+		        slug = fmt.Sprintf("%x-%x-%x-%x-%x", bytes[0:4], bytes[4:6], bytes[6:8], bytes[8:10], bytes[10:16])
+		    }
 			hero = map[string]interface{}{
 				"title":    trending[0].Title,
+				"slug":     slug,
 				"overview": trending[0].Overview.String,
 				"backdrop": tmdbImage(trending[0].BackdropPath.String, "original"),
 				"poster":   tmdbImage(trending[0].PosterPath.String, "w500"),

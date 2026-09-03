@@ -13,30 +13,33 @@ import (
 
 const getContinueWatching = `-- name: GetContinueWatching :many
 SELECT 
-    wp.id, wp.profile_id, wp.movie_id, wp.episode_id, wp.percentage, wp.completed,
+    wp.id, wp.profile_id, wp.content_id, wp.progress_sec, wp.is_completed,
     COALESCE(m.slug, s.slug) AS slug,
     COALESCE(m.title_lat, m.original_name, s.title_lat, s.original_name) AS title,
     COALESCE(m.backdrop_path, s.backdrop_path) AS backdrop_path,
-    COALESCE(m.poster_path, s.poster_path) AS poster_path
+    COALESCE(m.poster_path, s.poster_path) AS poster_path,
+    COALESCE(m.poster_path_tv, s.poster_path_tv) AS poster_path_tv,
+    COALESCE(m.logo_path, s.logo_path) AS logo_path
 FROM watch_progress wp
-LEFT JOIN movies m ON wp.movie_id = m.id
-LEFT JOIN serie_episodes ep ON wp.episode_id = ep.id
+LEFT JOIN movies m ON wp.content_type = 'movie' AND wp.content_id = m.id
+LEFT JOIN serie_episodes ep ON wp.content_type = 'episode' AND wp.content_id = ep.id
 LEFT JOIN series s ON ep.serie_id = s.id
-WHERE wp.profile_id = $1 AND wp.completed = false
+WHERE wp.profile_id = $1 AND wp.is_completed = false
 ORDER BY wp.last_watched_at DESC LIMIT 20
 `
 
 type GetContinueWatchingRow struct {
 	ID           int64       `json:"id"`
 	ProfileID    int64       `json:"profile_id"`
-	MovieID      pgtype.Int8 `json:"movie_id"`
-	EpisodeID    pgtype.Int8 `json:"episode_id"`
-	Percentage   int16       `json:"percentage"`
-	Completed    bool        `json:"completed"`
+	ContentID    int64       `json:"content_id"`
+	ProgressSec  int32       `json:"progress_sec"`
+	IsCompleted  bool        `json:"is_completed"`
 	Slug         string      `json:"slug"`
 	Title        string      `json:"title"`
 	BackdropPath pgtype.Text `json:"backdrop_path"`
 	PosterPath   pgtype.Text `json:"poster_path"`
+	PosterPathTv pgtype.Text `json:"poster_path_tv"`
+	LogoPath     pgtype.Text `json:"logo_path"`
 }
 
 func (q *Queries) GetContinueWatching(ctx context.Context, profileID int64) ([]GetContinueWatchingRow, error) {
@@ -51,14 +54,15 @@ func (q *Queries) GetContinueWatching(ctx context.Context, profileID int64) ([]G
 		if err := rows.Scan(
 			&i.ID,
 			&i.ProfileID,
-			&i.MovieID,
-			&i.EpisodeID,
-			&i.Percentage,
-			&i.Completed,
+			&i.ContentID,
+			&i.ProgressSec,
+			&i.IsCompleted,
 			&i.Slug,
 			&i.Title,
 			&i.BackdropPath,
 			&i.PosterPath,
+			&i.PosterPathTv,
+			&i.LogoPath,
 		); err != nil {
 			return nil, err
 		}
@@ -71,9 +75,9 @@ func (q *Queries) GetContinueWatching(ctx context.Context, profileID int64) ([]G
 }
 
 const getMyListMovies = `-- name: GetMyListMovies :many
-SELECT m.id, m.slug, COALESCE(m.title_lat, m.original_name) AS title, m.overview, m.poster_path, m.backdrop_path
+SELECT m.id, m.slug, COALESCE(m.title_lat, m.original_name) AS title, m.overview, m.poster_path, m.poster_path_tv, m.backdrop_path, m.logo_path
 FROM favorites f
-JOIN movies m ON f.movie_id = m.id
+JOIN movies m ON f.content_type = 'movie' AND f.content_id = m.id
 WHERE f.profile_id = $1
 ORDER BY f.created_at DESC LIMIT 20
 `
@@ -84,7 +88,9 @@ type GetMyListMoviesRow struct {
 	Title        string      `json:"title"`
 	Overview     pgtype.Text `json:"overview"`
 	PosterPath   pgtype.Text `json:"poster_path"`
+	PosterPathTv pgtype.Text `json:"poster_path_tv"`
 	BackdropPath pgtype.Text `json:"backdrop_path"`
+	LogoPath     pgtype.Text `json:"logo_path"`
 }
 
 func (q *Queries) GetMyListMovies(ctx context.Context, profileID int64) ([]GetMyListMoviesRow, error) {
@@ -102,7 +108,9 @@ func (q *Queries) GetMyListMovies(ctx context.Context, profileID int64) ([]GetMy
 			&i.Title,
 			&i.Overview,
 			&i.PosterPath,
+			&i.PosterPathTv,
 			&i.BackdropPath,
+			&i.LogoPath,
 		); err != nil {
 			return nil, err
 		}
@@ -115,9 +123,9 @@ func (q *Queries) GetMyListMovies(ctx context.Context, profileID int64) ([]GetMy
 }
 
 const getMyListSeries = `-- name: GetMyListSeries :many
-SELECT s.id, s.slug, COALESCE(s.title_lat, s.original_name) AS title, s.overview, s.poster_path, s.backdrop_path
+SELECT s.id, s.slug, COALESCE(s.title_lat, s.original_name) AS title, s.overview, s.poster_path, s.poster_path_tv, s.backdrop_path, s.logo_path
 FROM favorites f
-JOIN series s ON f.serie_id = s.id
+JOIN series s ON f.content_type = 'serie' AND f.content_id = s.id
 WHERE f.profile_id = $1
 ORDER BY f.created_at DESC LIMIT 20
 `
@@ -128,7 +136,9 @@ type GetMyListSeriesRow struct {
 	Title        string      `json:"title"`
 	Overview     pgtype.Text `json:"overview"`
 	PosterPath   pgtype.Text `json:"poster_path"`
+	PosterPathTv pgtype.Text `json:"poster_path_tv"`
 	BackdropPath pgtype.Text `json:"backdrop_path"`
+	LogoPath     pgtype.Text `json:"logo_path"`
 }
 
 func (q *Queries) GetMyListSeries(ctx context.Context, profileID int64) ([]GetMyListSeriesRow, error) {
@@ -146,7 +156,9 @@ func (q *Queries) GetMyListSeries(ctx context.Context, profileID int64) ([]GetMy
 			&i.Title,
 			&i.Overview,
 			&i.PosterPath,
+			&i.PosterPathTv,
 			&i.BackdropPath,
+			&i.LogoPath,
 		); err != nil {
 			return nil, err
 		}
@@ -201,7 +213,9 @@ func (q *Queries) GetPlayActiveNetworks(ctx context.Context) ([]GetPlayActiveNet
 const getPlayRecentAnimes = `-- name: GetPlayRecentAnimes :many
 SELECT id, slug, COALESCE(title_lat, original_name) AS title, overview, 
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster' AND is_main = true LIMIT 1), poster_path) AS poster_path, 
+    COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster_tv' AND is_main = true LIMIT 1), poster_path_tv) AS poster_path_tv,
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'backdrop' AND is_main = true LIMIT 1), backdrop_path) AS backdrop_path, 
+    COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'logo' AND is_main = true LIMIT 1), logo_path) AS logo_path, 
     first_air_date
 FROM series
 WHERE active = true AND is_type = 'anime'
@@ -214,7 +228,9 @@ type GetPlayRecentAnimesRow struct {
 	Title        string      `json:"title"`
 	Overview     pgtype.Text `json:"overview"`
 	PosterPath   pgtype.Text `json:"poster_path"`
+	PosterPathTv pgtype.Text `json:"poster_path_tv"`
 	BackdropPath pgtype.Text `json:"backdrop_path"`
+	LogoPath     pgtype.Text `json:"logo_path"`
 	FirstAirDate pgtype.Date `json:"first_air_date"`
 }
 
@@ -233,7 +249,9 @@ func (q *Queries) GetPlayRecentAnimes(ctx context.Context) ([]GetPlayRecentAnime
 			&i.Title,
 			&i.Overview,
 			&i.PosterPath,
+			&i.PosterPathTv,
 			&i.BackdropPath,
+			&i.LogoPath,
 			&i.FirstAirDate,
 		); err != nil {
 			return nil, err
@@ -249,7 +267,9 @@ func (q *Queries) GetPlayRecentAnimes(ctx context.Context) ([]GetPlayRecentAnime
 const getPlayRecentMovies = `-- name: GetPlayRecentMovies :many
 SELECT id, slug, COALESCE(title_lat, original_name) AS title, overview, 
     COALESCE((SELECT file_path FROM media_images WHERE movie_id = movies.id AND type = 'poster' AND is_main = true LIMIT 1), poster_path) AS poster_path, 
+    COALESCE((SELECT file_path FROM media_images WHERE movie_id = movies.id AND type = 'poster_tv' AND is_main = true LIMIT 1), poster_path_tv) AS poster_path_tv,
     COALESCE((SELECT file_path FROM media_images WHERE movie_id = movies.id AND type = 'backdrop' AND is_main = true LIMIT 1), backdrop_path) AS backdrop_path, 
+    COALESCE((SELECT file_path FROM media_images WHERE movie_id = movies.id AND type = 'logo' AND is_main = true LIMIT 1), logo_path) AS logo_path, 
     release_date
 FROM movies
 WHERE active = true
@@ -262,7 +282,9 @@ type GetPlayRecentMoviesRow struct {
 	Title        string      `json:"title"`
 	Overview     pgtype.Text `json:"overview"`
 	PosterPath   pgtype.Text `json:"poster_path"`
+	PosterPathTv pgtype.Text `json:"poster_path_tv"`
 	BackdropPath pgtype.Text `json:"backdrop_path"`
+	LogoPath     pgtype.Text `json:"logo_path"`
 	ReleaseDate  pgtype.Date `json:"release_date"`
 }
 
@@ -281,7 +303,9 @@ func (q *Queries) GetPlayRecentMovies(ctx context.Context) ([]GetPlayRecentMovie
 			&i.Title,
 			&i.Overview,
 			&i.PosterPath,
+			&i.PosterPathTv,
 			&i.BackdropPath,
+			&i.LogoPath,
 			&i.ReleaseDate,
 		); err != nil {
 			return nil, err
@@ -297,7 +321,9 @@ func (q *Queries) GetPlayRecentMovies(ctx context.Context) ([]GetPlayRecentMovie
 const getPlayRecentSeries = `-- name: GetPlayRecentSeries :many
 SELECT id, slug, COALESCE(title_lat, original_name) AS title, overview, 
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster' AND is_main = true LIMIT 1), poster_path) AS poster_path, 
+    COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster_tv' AND is_main = true LIMIT 1), poster_path_tv) AS poster_path_tv,
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'backdrop' AND is_main = true LIMIT 1), backdrop_path) AS backdrop_path, 
+    COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'logo' AND is_main = true LIMIT 1), logo_path) AS logo_path, 
     first_air_date
 FROM series
 WHERE active = true AND is_type = 'serie'
@@ -310,7 +336,9 @@ type GetPlayRecentSeriesRow struct {
 	Title        string      `json:"title"`
 	Overview     pgtype.Text `json:"overview"`
 	PosterPath   pgtype.Text `json:"poster_path"`
+	PosterPathTv pgtype.Text `json:"poster_path_tv"`
 	BackdropPath pgtype.Text `json:"backdrop_path"`
+	LogoPath     pgtype.Text `json:"logo_path"`
 	FirstAirDate pgtype.Date `json:"first_air_date"`
 }
 
@@ -329,7 +357,9 @@ func (q *Queries) GetPlayRecentSeries(ctx context.Context) ([]GetPlayRecentSerie
 			&i.Title,
 			&i.Overview,
 			&i.PosterPath,
+			&i.PosterPathTv,
 			&i.BackdropPath,
+			&i.LogoPath,
 			&i.FirstAirDate,
 		); err != nil {
 			return nil, err
@@ -345,7 +375,9 @@ func (q *Queries) GetPlayRecentSeries(ctx context.Context) ([]GetPlayRecentSerie
 const getPlayTrendingAnimes = `-- name: GetPlayTrendingAnimes :many
 SELECT id, slug, COALESCE(title_lat, original_name) AS title, overview, 
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster' AND is_main = true LIMIT 1), poster_path) AS poster_path, 
+    COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster_tv' AND is_main = true LIMIT 1), poster_path_tv) AS poster_path_tv,
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'backdrop' AND is_main = true LIMIT 1), backdrop_path) AS backdrop_path, 
+    COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'logo' AND is_main = true LIMIT 1), logo_path) AS logo_path, 
     COALESCE(views, 0)::bigint AS views
 FROM series
 WHERE active = true AND is_type = 'anime'
@@ -358,7 +390,9 @@ type GetPlayTrendingAnimesRow struct {
 	Title        string      `json:"title"`
 	Overview     pgtype.Text `json:"overview"`
 	PosterPath   pgtype.Text `json:"poster_path"`
+	PosterPathTv pgtype.Text `json:"poster_path_tv"`
 	BackdropPath pgtype.Text `json:"backdrop_path"`
+	LogoPath     pgtype.Text `json:"logo_path"`
 	Views        int64       `json:"views"`
 }
 
@@ -377,7 +411,9 @@ func (q *Queries) GetPlayTrendingAnimes(ctx context.Context) ([]GetPlayTrendingA
 			&i.Title,
 			&i.Overview,
 			&i.PosterPath,
+			&i.PosterPathTv,
 			&i.BackdropPath,
+			&i.LogoPath,
 			&i.Views,
 		); err != nil {
 			return nil, err
@@ -393,7 +429,9 @@ func (q *Queries) GetPlayTrendingAnimes(ctx context.Context) ([]GetPlayTrendingA
 const getPlayTrendingMovies = `-- name: GetPlayTrendingMovies :many
 SELECT id, slug, COALESCE(title_lat, original_name) AS title, overview, 
     COALESCE((SELECT file_path FROM media_images WHERE movie_id = movies.id AND type = 'poster' AND is_main = true LIMIT 1), poster_path) AS poster_path, 
+    COALESCE((SELECT file_path FROM media_images WHERE movie_id = movies.id AND type = 'poster_tv' AND is_main = true LIMIT 1), poster_path_tv) AS poster_path_tv,
     COALESCE((SELECT file_path FROM media_images WHERE movie_id = movies.id AND type = 'backdrop' AND is_main = true LIMIT 1), backdrop_path) AS backdrop_path, 
+    COALESCE((SELECT file_path FROM media_images WHERE movie_id = movies.id AND type = 'logo' AND is_main = true LIMIT 1), logo_path) AS logo_path, 
     COALESCE(views, 0)::bigint AS views
 FROM movies
 WHERE active = true
@@ -406,7 +444,9 @@ type GetPlayTrendingMoviesRow struct {
 	Title        string      `json:"title"`
 	Overview     pgtype.Text `json:"overview"`
 	PosterPath   pgtype.Text `json:"poster_path"`
+	PosterPathTv pgtype.Text `json:"poster_path_tv"`
 	BackdropPath pgtype.Text `json:"backdrop_path"`
+	LogoPath     pgtype.Text `json:"logo_path"`
 	Views        int64       `json:"views"`
 }
 
@@ -425,7 +465,9 @@ func (q *Queries) GetPlayTrendingMovies(ctx context.Context) ([]GetPlayTrendingM
 			&i.Title,
 			&i.Overview,
 			&i.PosterPath,
+			&i.PosterPathTv,
 			&i.BackdropPath,
+			&i.LogoPath,
 			&i.Views,
 		); err != nil {
 			return nil, err
@@ -441,7 +483,9 @@ func (q *Queries) GetPlayTrendingMovies(ctx context.Context) ([]GetPlayTrendingM
 const getPlayTrendingSeries = `-- name: GetPlayTrendingSeries :many
 SELECT id, slug, COALESCE(title_lat, original_name) AS title, overview, 
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster' AND is_main = true LIMIT 1), poster_path) AS poster_path, 
+    COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster_tv' AND is_main = true LIMIT 1), poster_path_tv) AS poster_path_tv,
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'backdrop' AND is_main = true LIMIT 1), backdrop_path) AS backdrop_path, 
+    COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'logo' AND is_main = true LIMIT 1), logo_path) AS logo_path, 
     COALESCE(views, 0)::bigint AS views
 FROM series
 WHERE active = true AND is_type = 'serie'
@@ -454,7 +498,9 @@ type GetPlayTrendingSeriesRow struct {
 	Title        string      `json:"title"`
 	Overview     pgtype.Text `json:"overview"`
 	PosterPath   pgtype.Text `json:"poster_path"`
+	PosterPathTv pgtype.Text `json:"poster_path_tv"`
 	BackdropPath pgtype.Text `json:"backdrop_path"`
+	LogoPath     pgtype.Text `json:"logo_path"`
 	Views        int64       `json:"views"`
 }
 
@@ -473,7 +519,9 @@ func (q *Queries) GetPlayTrendingSeries(ctx context.Context) ([]GetPlayTrendingS
 			&i.Title,
 			&i.Overview,
 			&i.PosterPath,
+			&i.PosterPathTv,
 			&i.BackdropPath,
+			&i.LogoPath,
 			&i.Views,
 		); err != nil {
 			return nil, err

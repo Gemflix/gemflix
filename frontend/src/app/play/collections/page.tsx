@@ -13,7 +13,7 @@ async function getCollections(searchParams: { [key: string]: string | string[] |
   if (searchParams.offset) params.set("offset", searchParams.offset as string);
   
   const apiUrl = getApiUrl();
-  const url = `${apiUrl}/api/play/explore/collections?${params.toString()}`;
+  const url = `${apiUrl}/play/explore/collections?${params.toString()}`;
   
   try {
     const res = await fetch(url, { cache: 'no-store' });

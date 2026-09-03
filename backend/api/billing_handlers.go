@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/jackc/pgx/v5/pgtype"
 	"proyecto-go/db/sqlc"
 )
 
@@ -18,7 +17,7 @@ func (server *Server) HandleListActivePlans(w http.ResponseWriter, r *http.Reque
 	}
 
 	if plans == nil {
-		plans = []db.BillingPlan{}
+		plans = []db.Plan{}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -33,7 +32,7 @@ func (server *Server) HandleGetActiveSubscriptions(w http.ResponseWriter, r *htt
 		return
 	}
 
-	subs, err := server.db.GetActiveUserSubscriptions(ctx, pgtype.Int8{Int64: userID, Valid: true})
+	subs, err := server.db.GetActiveUserSubscriptions(ctx, userID)
 	if err != nil {
 		http.Error(w, "Failed to fetch subscriptions", http.StatusInternalServerError)
 		return

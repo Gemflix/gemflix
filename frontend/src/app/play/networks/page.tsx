@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 async function getNetworks() {
   const apiUrl = getApiUrl();
-  const url = `${apiUrl}/api/play/explore/networks?limit=100`;
+  const url = `${apiUrl}/play/explore/networks?limit=100`;
   
   try {
     const res = await fetch(url, { cache: 'no-store' });

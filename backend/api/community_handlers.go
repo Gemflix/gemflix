@@ -29,9 +29,9 @@ func (server *Server) HandleCreateMediaRequest(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	tmdbID := pgtype.Int4{}
+	tmdbID := pgtype.Int8{}
 	if input.TmdbID > 0 {
-		tmdbID = pgtype.Int4{Int32: int32(input.TmdbID), Valid: true}
+		tmdbID = pgtype.Int8{Int64: int64(input.TmdbID), Valid: true}
 	}
 	notes := pgtype.Text{}
 	if input.Notes != "" {
@@ -39,11 +39,10 @@ func (server *Server) HandleCreateMediaRequest(w http.ResponseWriter, r *http.Re
 	}
 
 	req, err := server.db.CreateMediaRequest(ctx, db.CreateMediaRequestParams{
-		UserID:    userID,
-		TmdbID:    tmdbID,
-		Title:     input.Title,
-		MediaType: input.MediaType,
-		Notes:     notes,
+		UserID: userID,
+		TmdbID: tmdbID,
+		Title:  input.Title,
+		Notes:  notes,
 	})
 	if err != nil {
 		http.Error(w, "Failed to create request", http.StatusInternalServerError)
@@ -76,7 +75,7 @@ func (server *Server) HandleListMediaRequests(w http.ResponseWriter, r *http.Req
 	}
 
 	if reqs == nil {
-		reqs = []db.MediaRequest{}
+		reqs = []db.ContentRequest{}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -110,11 +109,11 @@ func (server *Server) HandleCreateMediaReport(w http.ResponseWriter, r *http.Req
 	}
 
 	rep, err := server.db.CreateMediaReport(ctx, db.CreateMediaReportParams{
-		UserID:    userID,
-		MediaType: input.MediaType,
-		MediaID:   input.MediaID,
-		Reason:    input.Reason,
-		Details:   details,
+		UserID:      userID,
+		ContentType: input.MediaType,
+		ContentID:   input.MediaID,
+		Reason:      input.Reason,
+		Details:     details,
 	})
 	if err != nil {
 		http.Error(w, "Failed to create report", http.StatusInternalServerError)
@@ -147,7 +146,7 @@ func (server *Server) HandleListMediaReports(w http.ResponseWriter, r *http.Requ
 	}
 
 	if reps == nil {
-		reps = []db.MediaReport{}
+		reps = []db.Report{}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
