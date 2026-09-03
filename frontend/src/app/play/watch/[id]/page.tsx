@@ -27,6 +27,11 @@ export default function WatchPage() {
         controls: true,
         responsive: true,
         fluid: true,
+        controlBar: {
+          volumePanel: { inline: false }, // Convierte el volumen en un slider horizontal expandible
+          remainingTimeDisplay: false,
+          pictureInPictureToggle: false,
+        },
         // Mock de prueba (video MP4 de código abierto)
         sources: [{
           src: 'https://vjs.zencdn.net/v/oceans.mp4',

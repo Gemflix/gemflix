@@ -211,7 +211,7 @@ func (q *Queries) GetPlayActiveNetworks(ctx context.Context) ([]GetPlayActiveNet
 }
 
 const getPlayRecentAnimes = `-- name: GetPlayRecentAnimes :many
-SELECT id, slug, COALESCE(title_lat, original_name) AS title, overview, 
+SELECT id, uuid, slug, COALESCE(title_lat, original_name) AS title, overview, 
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster' AND is_main = true LIMIT 1), poster_path) AS poster_path, 
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster_tv' AND is_main = true LIMIT 1), poster_path_tv) AS poster_path_tv,
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'backdrop' AND is_main = true LIMIT 1), backdrop_path) AS backdrop_path, 
@@ -224,6 +224,7 @@ ORDER BY first_air_date DESC LIMIT 10
 
 type GetPlayRecentAnimesRow struct {
 	ID           int64       `json:"id"`
+	Uuid         pgtype.UUID `json:"uuid"`
 	Slug         string      `json:"slug"`
 	Title        string      `json:"title"`
 	Overview     pgtype.Text `json:"overview"`
@@ -245,6 +246,7 @@ func (q *Queries) GetPlayRecentAnimes(ctx context.Context) ([]GetPlayRecentAnime
 		var i GetPlayRecentAnimesRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.Uuid,
 			&i.Slug,
 			&i.Title,
 			&i.Overview,
@@ -265,7 +267,7 @@ func (q *Queries) GetPlayRecentAnimes(ctx context.Context) ([]GetPlayRecentAnime
 }
 
 const getPlayRecentMovies = `-- name: GetPlayRecentMovies :many
-SELECT id, slug, COALESCE(title_lat, original_name) AS title, overview, 
+SELECT id, uuid, slug, COALESCE(title_lat, original_name) AS title, overview, 
     COALESCE((SELECT file_path FROM media_images WHERE movie_id = movies.id AND type = 'poster' AND is_main = true LIMIT 1), poster_path) AS poster_path, 
     COALESCE((SELECT file_path FROM media_images WHERE movie_id = movies.id AND type = 'poster_tv' AND is_main = true LIMIT 1), poster_path_tv) AS poster_path_tv,
     COALESCE((SELECT file_path FROM media_images WHERE movie_id = movies.id AND type = 'backdrop' AND is_main = true LIMIT 1), backdrop_path) AS backdrop_path, 
@@ -278,6 +280,7 @@ ORDER BY release_date DESC LIMIT 10
 
 type GetPlayRecentMoviesRow struct {
 	ID           int64       `json:"id"`
+	Uuid         pgtype.UUID `json:"uuid"`
 	Slug         string      `json:"slug"`
 	Title        string      `json:"title"`
 	Overview     pgtype.Text `json:"overview"`
@@ -299,6 +302,7 @@ func (q *Queries) GetPlayRecentMovies(ctx context.Context) ([]GetPlayRecentMovie
 		var i GetPlayRecentMoviesRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.Uuid,
 			&i.Slug,
 			&i.Title,
 			&i.Overview,
@@ -319,7 +323,7 @@ func (q *Queries) GetPlayRecentMovies(ctx context.Context) ([]GetPlayRecentMovie
 }
 
 const getPlayRecentSeries = `-- name: GetPlayRecentSeries :many
-SELECT id, slug, COALESCE(title_lat, original_name) AS title, overview, 
+SELECT id, uuid, slug, COALESCE(title_lat, original_name) AS title, overview, 
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster' AND is_main = true LIMIT 1), poster_path) AS poster_path, 
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster_tv' AND is_main = true LIMIT 1), poster_path_tv) AS poster_path_tv,
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'backdrop' AND is_main = true LIMIT 1), backdrop_path) AS backdrop_path, 
@@ -332,6 +336,7 @@ ORDER BY first_air_date DESC LIMIT 10
 
 type GetPlayRecentSeriesRow struct {
 	ID           int64       `json:"id"`
+	Uuid         pgtype.UUID `json:"uuid"`
 	Slug         string      `json:"slug"`
 	Title        string      `json:"title"`
 	Overview     pgtype.Text `json:"overview"`
@@ -353,6 +358,7 @@ func (q *Queries) GetPlayRecentSeries(ctx context.Context) ([]GetPlayRecentSerie
 		var i GetPlayRecentSeriesRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.Uuid,
 			&i.Slug,
 			&i.Title,
 			&i.Overview,
@@ -373,7 +379,7 @@ func (q *Queries) GetPlayRecentSeries(ctx context.Context) ([]GetPlayRecentSerie
 }
 
 const getPlayTrendingAnimes = `-- name: GetPlayTrendingAnimes :many
-SELECT id, slug, COALESCE(title_lat, original_name) AS title, overview, 
+SELECT id, uuid, slug, COALESCE(title_lat, original_name) AS title, overview, 
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster' AND is_main = true LIMIT 1), poster_path) AS poster_path, 
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster_tv' AND is_main = true LIMIT 1), poster_path_tv) AS poster_path_tv,
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'backdrop' AND is_main = true LIMIT 1), backdrop_path) AS backdrop_path, 
@@ -386,6 +392,7 @@ ORDER BY views DESC, vote_average DESC LIMIT 10
 
 type GetPlayTrendingAnimesRow struct {
 	ID           int64       `json:"id"`
+	Uuid         pgtype.UUID `json:"uuid"`
 	Slug         string      `json:"slug"`
 	Title        string      `json:"title"`
 	Overview     pgtype.Text `json:"overview"`
@@ -407,6 +414,7 @@ func (q *Queries) GetPlayTrendingAnimes(ctx context.Context) ([]GetPlayTrendingA
 		var i GetPlayTrendingAnimesRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.Uuid,
 			&i.Slug,
 			&i.Title,
 			&i.Overview,
@@ -427,7 +435,7 @@ func (q *Queries) GetPlayTrendingAnimes(ctx context.Context) ([]GetPlayTrendingA
 }
 
 const getPlayTrendingMovies = `-- name: GetPlayTrendingMovies :many
-SELECT id, slug, COALESCE(title_lat, original_name) AS title, overview, 
+SELECT id, uuid, slug, COALESCE(title_lat, original_name) AS title, overview, 
     COALESCE((SELECT file_path FROM media_images WHERE movie_id = movies.id AND type = 'poster' AND is_main = true LIMIT 1), poster_path) AS poster_path, 
     COALESCE((SELECT file_path FROM media_images WHERE movie_id = movies.id AND type = 'poster_tv' AND is_main = true LIMIT 1), poster_path_tv) AS poster_path_tv,
     COALESCE((SELECT file_path FROM media_images WHERE movie_id = movies.id AND type = 'backdrop' AND is_main = true LIMIT 1), backdrop_path) AS backdrop_path, 
@@ -440,6 +448,7 @@ ORDER BY views DESC, vote_average DESC LIMIT 10
 
 type GetPlayTrendingMoviesRow struct {
 	ID           int64       `json:"id"`
+	Uuid         pgtype.UUID `json:"uuid"`
 	Slug         string      `json:"slug"`
 	Title        string      `json:"title"`
 	Overview     pgtype.Text `json:"overview"`
@@ -461,6 +470,7 @@ func (q *Queries) GetPlayTrendingMovies(ctx context.Context) ([]GetPlayTrendingM
 		var i GetPlayTrendingMoviesRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.Uuid,
 			&i.Slug,
 			&i.Title,
 			&i.Overview,
@@ -481,7 +491,7 @@ func (q *Queries) GetPlayTrendingMovies(ctx context.Context) ([]GetPlayTrendingM
 }
 
 const getPlayTrendingSeries = `-- name: GetPlayTrendingSeries :many
-SELECT id, slug, COALESCE(title_lat, original_name) AS title, overview, 
+SELECT id, uuid, slug, COALESCE(title_lat, original_name) AS title, overview, 
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster' AND is_main = true LIMIT 1), poster_path) AS poster_path, 
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster_tv' AND is_main = true LIMIT 1), poster_path_tv) AS poster_path_tv,
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'backdrop' AND is_main = true LIMIT 1), backdrop_path) AS backdrop_path, 
@@ -494,6 +504,7 @@ ORDER BY views DESC, vote_average DESC LIMIT 10
 
 type GetPlayTrendingSeriesRow struct {
 	ID           int64       `json:"id"`
+	Uuid         pgtype.UUID `json:"uuid"`
 	Slug         string      `json:"slug"`
 	Title        string      `json:"title"`
 	Overview     pgtype.Text `json:"overview"`
@@ -515,6 +526,7 @@ func (q *Queries) GetPlayTrendingSeries(ctx context.Context) ([]GetPlayTrendingS
 		var i GetPlayTrendingSeriesRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.Uuid,
 			&i.Slug,
 			&i.Title,
 			&i.Overview,

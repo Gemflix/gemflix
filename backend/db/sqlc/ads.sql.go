@@ -16,7 +16,7 @@ INSERT INTO ads (
     company, type, content, is_rewarded, reward_tokens, daily_limit, is_active, priority
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8
-) RETURNING id, company, type, content, is_rewarded, reward_tokens, daily_limit, is_active, created_at, updated_at, priority
+) RETURNING id, company, type, content, is_rewarded, reward_tokens, daily_limit, is_active, priority, created_at, updated_at
 `
 
 type CreateAdParams struct {
@@ -51,9 +51,9 @@ func (q *Queries) CreateAd(ctx context.Context, arg CreateAdParams) (Ad, error) 
 		&i.RewardTokens,
 		&i.DailyLimit,
 		&i.IsActive,
+		&i.Priority,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.Priority,
 	)
 	return i, err
 }
@@ -68,7 +68,7 @@ func (q *Queries) DeleteAd(ctx context.Context, id int64) error {
 }
 
 const getAdByID = `-- name: GetAdByID :one
-SELECT id, company, type, content, is_rewarded, reward_tokens, daily_limit, is_active, created_at, updated_at, priority FROM ads WHERE id = $1
+SELECT id, company, type, content, is_rewarded, reward_tokens, daily_limit, is_active, priority, created_at, updated_at FROM ads WHERE id = $1
 `
 
 func (q *Queries) GetAdByID(ctx context.Context, id int64) (Ad, error) {
@@ -83,9 +83,9 @@ func (q *Queries) GetAdByID(ctx context.Context, id int64) (Ad, error) {
 		&i.RewardTokens,
 		&i.DailyLimit,
 		&i.IsActive,
+		&i.Priority,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.Priority,
 	)
 	return i, err
 }
@@ -116,7 +116,7 @@ func (q *Queries) GetAdView(ctx context.Context, arg GetAdViewParams) (UserAdVie
 }
 
 const getAdsWaterfall = `-- name: GetAdsWaterfall :many
-SELECT a.id, a.company, a.type, a.content, a.is_rewarded, a.reward_tokens, a.daily_limit, a.is_active, a.created_at, a.updated_at, a.priority, 
+SELECT a.id, a.company, a.type, a.content, a.is_rewarded, a.reward_tokens, a.daily_limit, a.is_active, a.priority, a.created_at, a.updated_at, 
        COALESCE(uav.views_today, 0)::INT as user_views_today
 FROM ads a
 LEFT JOIN user_ad_views uav 
@@ -137,9 +137,9 @@ type GetAdsWaterfallRow struct {
 	RewardTokens   int32              `json:"reward_tokens"`
 	DailyLimit     int16              `json:"daily_limit"`
 	IsActive       bool               `json:"is_active"`
+	Priority       int32              `json:"priority"`
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
-	Priority       int32              `json:"priority"`
 	UserViewsToday int32              `json:"user_views_today"`
 }
 
@@ -163,9 +163,9 @@ func (q *Queries) GetAdsWaterfall(ctx context.Context, userID int64) ([]GetAdsWa
 			&i.RewardTokens,
 			&i.DailyLimit,
 			&i.IsActive,
+			&i.Priority,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.Priority,
 			&i.UserViewsToday,
 		); err != nil {
 			return nil, err
@@ -179,7 +179,7 @@ func (q *Queries) GetAdsWaterfall(ctx context.Context, userID int64) ([]GetAdsWa
 }
 
 const listAdminAds = `-- name: ListAdminAds :many
-SELECT id, company, type, content, is_rewarded, reward_tokens, daily_limit, is_active, created_at, updated_at, priority FROM ads
+SELECT id, company, type, content, is_rewarded, reward_tokens, daily_limit, is_active, priority, created_at, updated_at FROM ads
 ORDER BY priority DESC, created_at DESC
 LIMIT $1 OFFSET $2
 `
@@ -207,9 +207,9 @@ func (q *Queries) ListAdminAds(ctx context.Context, arg ListAdminAdsParams) ([]A
 			&i.RewardTokens,
 			&i.DailyLimit,
 			&i.IsActive,
+			&i.Priority,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.Priority,
 		); err != nil {
 			return nil, err
 		}
@@ -234,7 +234,7 @@ SET
     priority = coalesce($8, priority),
     updated_at = NOW()
 WHERE id = $9
-RETURNING id, company, type, content, is_rewarded, reward_tokens, daily_limit, is_active, created_at, updated_at, priority
+RETURNING id, company, type, content, is_rewarded, reward_tokens, daily_limit, is_active, priority, created_at, updated_at
 `
 
 type UpdateAdParams struct {
@@ -271,9 +271,9 @@ func (q *Queries) UpdateAd(ctx context.Context, arg UpdateAdParams) (Ad, error) 
 		&i.RewardTokens,
 		&i.DailyLimit,
 		&i.IsActive,
+		&i.Priority,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.Priority,
 	)
 	return i, err
 }

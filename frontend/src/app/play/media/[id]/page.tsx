@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Calendar, Clock, Star, ArrowLeft } from "lucide-react";
+import { SeasonSelector } from "@/components/play/media/SeasonSelector";
 
 interface MediaDetails {
   id: number;
@@ -182,6 +183,11 @@ export default function MediaDetailsPage() {
           </motion.div>
 
         </div>
+        
+        {/* SELECTOR DE TEMPORADAS (Solo para Series) */}
+        {media.type === 'tv' && (
+          <SeasonSelector serieId={media.id} />
+        )}
       </div>
     </div>
   );

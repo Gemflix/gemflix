@@ -1,5 +1,5 @@
 -- name: GetPlayTrendingMovies :many
-SELECT id, slug, COALESCE(title_lat, original_name) AS title, overview, 
+SELECT id, uuid, slug, COALESCE(title_lat, original_name) AS title, overview, 
     COALESCE((SELECT file_path FROM media_images WHERE movie_id = movies.id AND type = 'poster' AND is_main = true LIMIT 1), poster_path) AS poster_path, 
     COALESCE((SELECT file_path FROM media_images WHERE movie_id = movies.id AND type = 'poster_tv' AND is_main = true LIMIT 1), poster_path_tv) AS poster_path_tv,
     COALESCE((SELECT file_path FROM media_images WHERE movie_id = movies.id AND type = 'backdrop' AND is_main = true LIMIT 1), backdrop_path) AS backdrop_path, 
@@ -10,7 +10,7 @@ WHERE active = true
 ORDER BY views DESC, vote_average DESC LIMIT 10;
 
 -- name: GetPlayRecentMovies :many
-SELECT id, slug, COALESCE(title_lat, original_name) AS title, overview, 
+SELECT id, uuid, slug, COALESCE(title_lat, original_name) AS title, overview, 
     COALESCE((SELECT file_path FROM media_images WHERE movie_id = movies.id AND type = 'poster' AND is_main = true LIMIT 1), poster_path) AS poster_path, 
     COALESCE((SELECT file_path FROM media_images WHERE movie_id = movies.id AND type = 'poster_tv' AND is_main = true LIMIT 1), poster_path_tv) AS poster_path_tv,
     COALESCE((SELECT file_path FROM media_images WHERE movie_id = movies.id AND type = 'backdrop' AND is_main = true LIMIT 1), backdrop_path) AS backdrop_path, 
@@ -21,7 +21,7 @@ WHERE active = true
 ORDER BY release_date DESC LIMIT 10;
 
 -- name: GetPlayTrendingSeries :many
-SELECT id, slug, COALESCE(title_lat, original_name) AS title, overview, 
+SELECT id, uuid, slug, COALESCE(title_lat, original_name) AS title, overview, 
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster' AND is_main = true LIMIT 1), poster_path) AS poster_path, 
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster_tv' AND is_main = true LIMIT 1), poster_path_tv) AS poster_path_tv,
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'backdrop' AND is_main = true LIMIT 1), backdrop_path) AS backdrop_path, 
@@ -32,7 +32,7 @@ WHERE active = true AND is_type = 'serie'
 ORDER BY views DESC, vote_average DESC LIMIT 10;
 
 -- name: GetPlayRecentSeries :many
-SELECT id, slug, COALESCE(title_lat, original_name) AS title, overview, 
+SELECT id, uuid, slug, COALESCE(title_lat, original_name) AS title, overview, 
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster' AND is_main = true LIMIT 1), poster_path) AS poster_path, 
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster_tv' AND is_main = true LIMIT 1), poster_path_tv) AS poster_path_tv,
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'backdrop' AND is_main = true LIMIT 1), backdrop_path) AS backdrop_path, 
@@ -43,7 +43,7 @@ WHERE active = true AND is_type = 'serie'
 ORDER BY first_air_date DESC LIMIT 10;
 
 -- name: GetPlayTrendingAnimes :many
-SELECT id, slug, COALESCE(title_lat, original_name) AS title, overview, 
+SELECT id, uuid, slug, COALESCE(title_lat, original_name) AS title, overview, 
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster' AND is_main = true LIMIT 1), poster_path) AS poster_path, 
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster_tv' AND is_main = true LIMIT 1), poster_path_tv) AS poster_path_tv,
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'backdrop' AND is_main = true LIMIT 1), backdrop_path) AS backdrop_path, 
@@ -54,7 +54,7 @@ WHERE active = true AND is_type = 'anime'
 ORDER BY views DESC, vote_average DESC LIMIT 10;
 
 -- name: GetPlayRecentAnimes :many
-SELECT id, slug, COALESCE(title_lat, original_name) AS title, overview, 
+SELECT id, uuid, slug, COALESCE(title_lat, original_name) AS title, overview, 
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster' AND is_main = true LIMIT 1), poster_path) AS poster_path, 
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'poster_tv' AND is_main = true LIMIT 1), poster_path_tv) AS poster_path_tv,
     COALESCE((SELECT file_path FROM media_images WHERE serie_id = series.id AND type = 'backdrop' AND is_main = true LIMIT 1), backdrop_path) AS backdrop_path, 

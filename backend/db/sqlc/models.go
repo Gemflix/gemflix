@@ -45,9 +45,9 @@ type Ad struct {
 	RewardTokens int32              `json:"reward_tokens"`
 	DailyLimit   int16              `json:"daily_limit"`
 	IsActive     bool               `json:"is_active"`
+	Priority     int32              `json:"priority"`
 	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
-	Priority     int32              `json:"priority"`
 }
 
 type AppSetting struct {

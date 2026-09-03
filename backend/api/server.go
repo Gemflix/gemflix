@@ -71,6 +71,7 @@ func (s *Server) routes() {
 		r.Route("/play", func(r chi.Router) {
 			r.Get("/settings", s.handleGetSettings)
 			r.Get("/media/{slug}", s.handleGetMediaDetails)
+			r.Get("/media/series/{id}/seasons", s.handleGetSerieSeasons)
 			r.Get("/home", s.handleGetVODHome) // Handles its own auth based on public_catalog setting
 			r.Get("/catalog/movies", s.HandleCatalogMovies)
 			r.Get("/catalog/series", s.HandleCatalogSeries)
